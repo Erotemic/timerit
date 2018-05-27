@@ -75,7 +75,7 @@ def test_verbose_report():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python ubelt/tests/test_time.py test_timer_nonewline
+        python test_timerit.py test_timer_nonewline
     """
     import xdoctest
     xdoctest.doctest_module(__file__)
