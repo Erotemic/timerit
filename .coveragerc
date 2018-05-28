@@ -19,9 +19,3 @@ exclude_lines =
     if __name__ == .__main__.:
     print(.*)
     .*if six.PY2:
-
-omit =
-    timerit/tests/*
-    timerit/_win32_links.py
-    timerit/__main__.py
-    */setup.py
