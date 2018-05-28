@@ -330,6 +330,11 @@ class Timerit(object):
 
         Args:
             verbose (int): verbosity level
+
+        Example:
+            >>> Timerit(num=10).call(math.factorial, 50).print()
+            Timed for: 10 loops, best of 3
+                time per loop: best=..., mean=...
         """
         print(self.report(verbose=verbose))
 
@@ -368,11 +373,12 @@ class ToggleGC(object):
 
 def _trychar(char, fallback):  # nocover
     """
+    Logic from IPython timeit to handle terminals that cant show mu
+
     Example:
         >>> char = _trychar('µs', 'us')
         >>> print('char = {}'.format(char))
     """
-    # Logic from ipython timeit to handle terminals that cant show mu
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:  # pragma: nobranch
         try:
             char.encode(sys.stdout.encoding)
