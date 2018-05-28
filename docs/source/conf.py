@@ -175,3 +175,14 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+todo_include_todos = True
+napoleon_google_docstring = True
+napoleon_use_param = False
+napoleon_use_ivar = True
+autodoc_inherit_docstrings = False
+
+html_theme_options = {
+    'collapse_navigation': False,
+    'display_version': True,
+    # 'logo_only': True,
+}
