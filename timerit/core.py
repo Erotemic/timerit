@@ -8,7 +8,7 @@ import itertools as it
 
 __all__ = ['Timer', 'Timerit']
 
-if sys.version_info.major == 2:
+if sys.version_info.major == 2:  # nocover
     default_timer = time.clock if sys.platform.startswith('win32') else time.time
 else:
     default_timer = time.perf_counter
@@ -28,12 +28,17 @@ class Timer(object):
         elapsed (float): number of seconds measured by the context manager
         tstart (float): time of last `tic` reported by `default_timer()`
 
+    CommandLine:
+        python -m timerit.core Timer
+
     Example:
         >>> # Create and start the timer using the the context manager
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
         >>>     math.factorial(10000)
         >>> assert timer.elapsed > 0
+        tic('Timer test!')
+        ...toc('Timer test!')=...
 
     Example:
         >>> # Create and start the timer using the tic/toc interface
@@ -101,6 +106,9 @@ class Timerit(object):
         bestof (int): takes the max over this number of trials
         verbose (int): verbosity flag, defaults to True if label is given
 
+    CommandLine:
+        python -m timerit.core Timerit:0
+
     Example:
         >>> num = 15
         >>> t1 = Timerit(num, verbose=2)
@@ -109,21 +117,28 @@ class Timerit(object):
         >>>     with timer:
         >>>         # <write code to time here> for example...
         >>>         math.factorial(10000)
+        Timing for 15 loops
+        Timed for: 15 loops, best of 3
+            time per loop: best=..., mean=...
         >>> # <you can now access Timerit attributes>
-        >>> print('t1.total_time = %r' % (t1.total_time,))
         >>> assert t1.total_time > 0
         >>> assert t1.n_loops == t1.num
         >>> assert t1.n_loops == num
 
     Example:
+        >>> # xdoc: +IGNORE_WANT
         >>> num = 10
         >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
         >>> for _ in Timerit(num, 'imprecise'):
         >>>     math.factorial(10000)
+        Timed imprecise for: 10 loops, best of 3
+            time per loop: best=4.954 ms, mean=4.972 ± 0.018 ms
         >>> # Using the timer object results in the most precise timings
         >>> for timer in Timerit(num, 'precise'):
         >>>     with timer: math.factorial(10000)
+        Timed precise for: 10 loops, best of 3
+            time per loop: best=4.964 ms, mean=4.976 ± 0.016 ms
     """
     def __init__(self, num=1, label=None, bestof=3, verbose=None):
         if verbose is None:
