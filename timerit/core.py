@@ -20,9 +20,10 @@ class Timer(object):
     with-statement context manager, or using the tic/toc api.
 
     Args:
-        label (str): identifier for printing defaults to ''
+        label (str): identifier for printing, defaults to ''
         verbose (int): verbosity flag, defaults to True if label is given
-        newline (bool): if False and verbose, print tic and toc on the same line
+        newline (bool): if False and verbose, print tic and toc on the same
+            line, defaults to True
 
     Attributes:
         elapsed (float): number of seconds measured by the context manager
@@ -32,7 +33,7 @@ class Timer(object):
         python -m timerit.core Timer
 
     Example:
-        >>> # Create and start the timer using the the context manager
+        >>> # Create and start the timer using the context manager
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
         >>>     math.factorial(10000)
