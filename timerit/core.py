@@ -140,7 +140,7 @@ class Timerit(object):
         Timed precise for: 10 loops, best of 3
             time per loop: best=4.964 ms, mean=4.976 ± 0.016 ms
     """
-    def __init__(self, num=1, label=None, bestof=3, verbose=None):
+    def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None):
         if verbose is None:
             verbose = bool(label)
         self.num = num
@@ -150,6 +150,7 @@ class Timerit(object):
         self.total_time = None
         self.n_loops = None
         self.bestof = bestof
+        self.unit = unit
 
     def call(self, func, *args, **kwargs):
         """
@@ -179,6 +180,10 @@ class Timerit(object):
         # Create a foreground and background timer
         bg_timer = Timer(verbose=0)   # (ideally this is unused)
         fg_timer = Timer(verbose=0)   # (used directly by user)
+        # give the forground timer a reference to this object, so the user can
+        # access this object while still constructing the timerit object inline
+        # with the for loop.
+        fg_timer.parent = self
         # disable the garbage collector while timing
         with ToggleGC(False):
             # Core timing loop
@@ -286,19 +291,23 @@ class Timerit(object):
             >>> print(self._seconds_str())
             ... 'best=3.423 µs, ave=3.451 ± 0.027 µs'
         """
+        from collections import OrderedDict
 
-        units = [
-            ('s', 1e0),
-            ('ms', 1e-3),
-            (_trychar('µs', 'us'), 1e-6),
-            ('ns', 1e-9),
-        ]
+        units = OrderedDict([
+            ('s', ('s', 1e0)),
+            ('ms', ('ms', 1e-3)),
+            ('us', (_trychar('µs', 'us'), 1e-6)),
+            ('ns', ('ns', 1e-9)),
+        ])
 
         mean = self.mean()
 
-        for unit, mag in units:  # pragma: nobranch
-            if mean > mag:
-                break
+        if self.unit is None:
+            for unit, mag in units:  # pragma: nobranch
+                if mean > mag:
+                    break
+        else:
+            unit, mag = units[self.unit]
 
         unit_min = self.min() / mag
         unit_mean = mean / mag
@@ -328,15 +337,25 @@ class Timerit(object):
         """
         report_lines = []
         pline = report_lines.append
-        if self.label is None:
-            pline('Timed for: %d loops, best of %d' % (
-                self.n_loops, min(self.n_loops, self.bestof)))
+
+        if True:
+            # Working on more condensed reporting mechanism
+            # num_report = 'for: {:d} loops, best of {:d}\n'.format(
+            #     self.n_loops, min(self.n_loops, self.bestof))
+            part1 = 'Timed ' + self._seconds_str()
+            if self.label:
+                part1 += ' for ' + self.label
+            return part1
         else:
-            pline('Timed %s for: %d loops, best of %d' % (
-                self.label, self.n_loops, min(self.n_loops, self.bestof)))
-        if verbose > 2:
-            pline('    body took: %s seconds' % self.total_time)
-        pline('    time per loop: %s' % (self._seconds_str(),))
+            if self.label is None:
+                pline('Timed for: %d loops, best of %d' % (
+                    self.n_loops, min(self.n_loops, self.bestof)))
+            else:
+                pline('Timed %s for: %d loops, best of %d' % (
+                    self.label, self.n_loops, min(self.n_loops, self.bestof)))
+            if verbose > 2:
+                pline('    body took: %s seconds' % self.total_time)
+            pline('    time per loop: %s' % (self._seconds_str(),))
         return '\n'.join(report_lines)
 
     def print(self, verbose=1):
