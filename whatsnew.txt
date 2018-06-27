@@ -1,0 +1,11 @@
+Version 0.0.2
+=============
+* Added unit keyword arg to Timerit. This forces a Timerit objects to report
+  time per loop in a particular unit. The default of None chooses a unit.
+* The timer returned by Timerit.__iter__ now contains an attribute 
+  called `parent` that references the original timer object.
+
+
+Version 0.0.1
+=============
+* Initial port from ubelt
