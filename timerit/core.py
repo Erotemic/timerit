@@ -5,13 +5,15 @@ import math
 import sys
 import gc
 import itertools as it
+from collections import OrderedDict
 
 __all__ = ['Timer', 'Timerit']
 
 if sys.version_info.major == 2:  # nocover
-    default_timer = time.clock if sys.platform.startswith('win32') else time.time
+    default_time = time.clock if sys.platform.startswith('win32') else time.time
 else:
-    default_timer = time.perf_counter
+    # TODO: If sys.version >= 3.7, then use time.perf_counter_ns
+    default_time = time.perf_counter
 
 
 class Timer(object):
@@ -27,7 +29,7 @@ class Timer(object):
 
     Attributes:
         elapsed (float): number of seconds measured by the context manager
-        tstart (float): time of last `tic` reported by `default_timer()`
+        tstart (float): time of last `tic` reported by `self._time()`
 
     CommandLine:
         python -m timerit.core Timer
@@ -60,6 +62,7 @@ class Timer(object):
         self.elapsed = -1
         self.write = sys.stdout.write
         self.flush = sys.stdout.flush
+        self._time = default_time
 
     def tic(self):
         """ starts the timer """
@@ -69,12 +72,12 @@ class Timer(object):
             if self.newline:
                 self.write('\n')
             self.flush()
-        self.tstart = default_timer()
+        self.tstart = self._time()
         return self
 
     def toc(self):
         """ stops the timer """
-        elapsed = default_timer() - self.tstart
+        elapsed = self._time() - self.tstart
         if self.verbose:
             self.write('...toc(%r)=%.4fs\n' % (self.label, elapsed))
             self.flush()
@@ -112,15 +115,13 @@ class Timerit(object):
 
     Example:
         >>> num = 15
-        >>> t1 = Timerit(num, verbose=2)
+        >>> t1 = Timerit(num, label='factorial', verbose=1)
         >>> for timer in t1:
         >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
         >>>         # <write code to time here> for example...
         >>>         math.factorial(10000)
-        Timing for 15 loops
-        Timed for: 15 loops, best of 3
-            time per loop: best=..., mean=...
+        Timed best=..., mean=... for factorial
         >>> # <you can now access Timerit attributes>
         >>> assert t1.total_time > 0
         >>> assert t1.n_loops == t1.num
@@ -131,15 +132,16 @@ class Timerit(object):
         >>> num = 10
         >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
-        >>> for _ in Timerit(num, 'imprecise'):
+        >>> for _ in Timerit(num, 'concise', verbose=2):
         >>>     math.factorial(10000)
-        Timed imprecise for: 10 loops, best of 3
+        Timed concise for: 10 loops, best of 3
             time per loop: best=4.954 ms, mean=4.972 ± 0.018 ms
         >>> # Using the timer object results in the most precise timings
-        >>> for timer in Timerit(num, 'precise'):
+        >>> for timer in Timerit(num, 'precise', verbose=3):
         >>>     with timer: math.factorial(10000)
-        Timed precise for: 10 loops, best of 3
-            time per loop: best=4.964 ms, mean=4.976 ± 0.016 ms
+        Timing precise for: 15 loops, best of 3
+        Timed precise for: 15 loops, best of 3
+            time per loop: best=2.474 ms, mean=2.54 ± 0.046 ms
     """
     def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None):
         if verbose is None:
@@ -152,6 +154,9 @@ class Timerit(object):
         self.n_loops = None
         self.bestof = bestof
         self.unit = unit
+        self._timer_cls = Timer
+        self._precision = 4
+        self._asciimode = None
 
     def call(self, func, *args, **kwargs):
         """
@@ -171,16 +176,14 @@ class Timerit(object):
         return self
 
     def __iter__(self):
-        if self.verbose >= 2:
-            if self.label is None:
-                print('Timing for %d loops' % self.num)
-            else:
-                print('Timing %s for %d loops.' % (self.label, self.num,))
+        if self.verbose >= 3:
+            print(self._status_line(tense='present'))
+
         self.n_loops = 0
         self.total_time = 0
         # Create a foreground and background timer
-        bg_timer = Timer(verbose=0)   # (ideally this is unused)
-        fg_timer = Timer(verbose=0)   # (used directly by user)
+        bg_timer = self._timer_cls(verbose=0)   # (ideally this is unused)
+        fg_timer = self._timer_cls(verbose=0)   # (used directly by user)
         # give the forground timer a reference to this object, so the user can
         # access this object while still constructing the timerit object inline
         # with the for loop.
@@ -292,72 +295,77 @@ class Timerit(object):
             >>> print(self._seconds_str())
             ... 'best=3.423 µs, ave=3.451 ± 0.027 µs'
         """
-        from collections import OrderedDict
-
-        units = OrderedDict([
-            ('s', ('s', 1e0)),
-            ('ms', ('ms', 1e-3)),
-            ('us', (_trychar('µs', 'us'), 1e-6)),
-            ('ns', ('ns', 1e-9)),
-        ])
-
         mean = self.mean()
-
-        if self.unit is None:
-            for unit, mag in units:  # pragma: nobranch
-                if mean > mag:
-                    break
-        else:
-            unit, mag = units[self.unit]
+        unit, mag = _choose_unit(mean, self.unit, self._asciimode)
 
         unit_min = self.min() / mag
         unit_mean = mean / mag
-        precision = 4
 
         # Is showing the std useful? It probably doesn't hurt.
         std = self.std()
         unit_std = std / mag
-        pm = _trychar('±', '+-')
+        pm = _trychar('±', '+-', self._asciimode)
         fmtstr = ('best={min:.{pr1}} {unit}, '
                   'mean={mean:.{pr1}} {pm} {std:.{pr2}} {unit}')
-        pr1 = precision
-        pr2 = max(precision - 2, 1)
+        pr1 = self._precision
+        pr2 = max(self._precision - 2, 1)
         unit_str = fmtstr.format(min=unit_min, unit=unit, mean=unit_mean,
                                  pm=pm, std=unit_std, pr1=pr1, pr2=pr2)
         return unit_str
+
+    def _status_line(self, tense='past'):
+        """
+        Text indicating what has been / is being done.
+
+        Doctest:
+            >>> print(Timerit()._status_line(tense='past'))
+            Timed for: 1 loops, best of 1
+            >>> print(Timerit()._status_line(tense='present'))
+            Timing for: 1 loops, best of 1
+        """
+        action = {'past': 'Timed',  'present': 'Timing'}[tense]
+        line = '{action} {label}for: {num:d} loops, best of {bestof:d}'.format(
+            label=self.label + ' ' if self.label else '',
+            action=action, num=self.num, bestof=min(self.bestof, self.num))
+        return line
 
     def report(self, verbose=1):
         """
         Creates a human readable report
 
         Args:
-            verbose (int): verbosity level
+            verbose (int): verbosity level. Either 1, 2, or 3.
 
         Returns:
             str: the report
-        """
-        report_lines = []
-        pline = report_lines.append
 
-        if True:
-            # Working on more condensed reporting mechanism
-            # num_report = 'for: {:d} loops, best of {:d}\n'.format(
-            #     self.n_loops, min(self.n_loops, self.bestof))
-            part1 = 'Timed ' + self._seconds_str()
-            if self.label:
-                part1 += ' for ' + self.label
-            return part1
+        SeeAlso:
+            Timerit.print
+
+        Example:
+            >>> ti = Timerit(num=1).call(math.factorial, 5)
+            >>> print(ti.report(verbose=1))
+            Timed best=...s, mean=...s
+        """
+        lines = []
+        if verbose >= 2:
+            # use a multi-line format for high verbosity
+            lines.append(self._status_line(tense='past'))
+            if verbose >= 3:
+                unit, mag = _choose_unit(self.total_time, self.unit,
+                                         self._asciimode)
+                lines.append('    body took: {total:.{pr}} {unit}'.format(
+                    total=self.total_time / mag,
+                    pr=self._precision, unit=unit))
+            lines.append('    time per loop: {}'.format(self._seconds_str()))
         else:
-            if self.label is None:
-                pline('Timed for: %d loops, best of %d' % (
-                    self.n_loops, min(self.n_loops, self.bestof)))
-            else:
-                pline('Timed %s for: %d loops, best of %d' % (
-                    self.label, self.n_loops, min(self.n_loops, self.bestof)))
-            if verbose > 2:
-                pline('    body took: %s seconds' % self.total_time)
-            pline('    time per loop: %s' % (self._seconds_str(),))
-        return '\n'.join(report_lines)
+            # use a single-line format for low verbosity
+            line = 'Timed ' + self._seconds_str()
+            if self.label:
+                line += ' for ' + self.label
+            lines.append(line)
+        text = '\n'.join(lines)
+        return text
 
     def print(self, verbose=1):
         """
@@ -366,10 +374,19 @@ class Timerit(object):
         Args:
             verbose (int): verbosity level
 
+        SeeAlso:
+            Timerit.report
+
         Example:
-            >>> Timerit(num=10).call(math.factorial, 50).print()
+            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=1)
+            Timed best=...s, mean=...s
+            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=2)
             Timed for: 10 loops, best of 3
-                time per loop: best=..., mean=...
+                time per loop: best=...s, mean=...s
+            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=3)
+            Timed for: 10 loops, best of 3
+                body took: ...
+                time per loop: best=...s, mean=...s
         """
         print(self.report(verbose=verbose))
 
@@ -406,14 +423,59 @@ class ToggleGC(object):
             gc.disable()
 
 
-def _trychar(char, fallback):  # nocover
+def _choose_unit(value, unit=None, asciimode=None):
+    """
+    Finds a good unit to print seconds in
+
+    Args:
+        value (float): measured value in seconds
+        unit (str): if specified, overrides heuristic decision
+        asciimode (bool): if True, forces ascii for microseconds
+
+    Returns:
+        tuple[(str, float)]: suffix, mag:
+            string suffix and conversion factor
+
+    Example:
+        >>> assert _choose_unit(1.1, unit=None)[0] == 's'
+        >>> assert _choose_unit(1e-2, unit=None)[0] == 'ms'
+        >>> assert _choose_unit(1e-4, unit=None, asciimode=True)[0] == 'us'
+        >>> assert _choose_unit(1.1, unit='ns')[0] == 'ns'
+    """
+    micro = _trychar('µs', 'us', asciimode)
+    units = OrderedDict([
+        ('s', ('s', 1e0)),
+        ('ms', ('ms', 1e-3)),
+        ('us', (micro, 1e-6)),
+        ('ns', ('ns', 1e-9)),
+    ])
+    if unit is None:
+        for suffix, mag in units.values():  # pragma: nobranch
+            if value > mag:
+                break
+    else:
+        suffix, mag = units[unit]
+    return suffix, mag
+
+
+def _trychar(char, fallback, asciimode=None):  # nocover
     """
     Logic from IPython timeit to handle terminals that cant show mu
+
+    Args:
+        char (str): character, typically unicode, to try to use
+        fallback (str): ascii character to use if stdout cannot encode char
+        asciimode (bool): if True, always use fallback
 
     Example:
         >>> char = _trychar('µs', 'us')
         >>> print('char = {}'.format(char))
+        >>> assert _trychar('µs', 'us', asciimode=True) == 'us'
+
     """
+    if asciimode is True:
+        # If we request ascii mode simply return it
+        return fallback
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:  # pragma: nobranch
         try:
             char.encode(sys.stdout.encoding)

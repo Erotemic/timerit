@@ -4,6 +4,13 @@ Version 0.0.2
   time per loop in a particular unit. The default of None chooses a unit.
 * The timer returned by Timerit.__iter__ now contains an attribute 
   called `parent` that references the original timer object.
+* Renamed global private attribute `default_timer` to `default_time`
+* Timer now uses a `self._time` instead of globally calling `default_time`.
+  This is mainly to make testing easier.
+* Timerit now uses `self._timer_cls` instead of `Timer` for internal timers,
+  again mainly for testing reasons.
+* Add internals to force ascii chars for tests
+
 
 
 Version 0.0.1

@@ -2,6 +2,43 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from xdoctest.utils import CaptureStdout
 from timerit import Timer, Timerit
+from functools import partial
+import random
+
+
+class HackedTime(object):
+    """
+    Time object that only ever measures increments and not absolute time
+
+    Args:
+        inc (float): number of seconds to ellapse between each call
+    """
+    def __init__(self, inc=1.0, noise=0):
+        self.time = 1000000000.000
+        self.inc = inc
+        self.noise = noise
+    def __call__(self):
+        self.time += abs(self.inc + random.normalvariate(0, self.noise))
+        return self.time
+
+
+class HackedTimer(Timer):
+    """ Creates a Timer object where timings are known for testing """
+    def __init__(self, *args, **kw):
+        inc = kw.pop('inc', 42)
+        super(HackedTimer, self).__init__(*args, **kw)
+        self._time = HackedTime(inc=inc)
+        self.inc = inc
+
+
+class HackedTimerit(Timerit):
+    """ Creates a Timerit object where timings are known for testing """
+    def __init__(self, *args, **kw):
+        inc = kw.pop('inc', 42)
+        super(HackedTimerit, self).__init__(*args, **kw)
+        self._timer_cls = partial(HackedTimer, inc=inc)
+        self.inc = inc
+        self._asciimode = True  # a hacked timer will always return ascii
 
 
 def test_timer_nonewline():
@@ -19,13 +56,13 @@ def test_timerit_verbose():
 
     with CaptureStdout() as cap:
         Timerit(3, label='foo', verbose=1).call(lambda: None)
-    assert cap.text.count('\n') == 2
+    assert cap.text.count('\n') == 1
     assert cap.text.count('foo') == 1
 
     with CaptureStdout() as cap:
         Timerit(3, label='foo', verbose=2).call(lambda: None)
-    assert cap.text.count('\n') == 3
-    assert cap.text.count('foo') == 2
+    assert cap.text.count('\n') == 2
+    assert cap.text.count('foo') == 1
 
     with CaptureStdout() as cap:
         Timerit(3, label='foo', verbose=3).call(lambda: None)
@@ -36,6 +73,44 @@ def test_timerit_verbose():
         Timerit(3, label='foo', verbose=4).call(lambda: None)
     assert cap.text.count('\n') == 4
     assert cap.text.count('foo') == 2
+
+
+def test_hacked_timerit_verbose():
+    import textwrap
+    with CaptureStdout() as cap:
+        HackedTimerit(3, label='foo', verbose=0).call(lambda: None)
+    print(cap.text)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        ''').strip()
+
+    with CaptureStdout() as cap:
+        HackedTimerit(3, label='foo', verbose=1).call(lambda: None)
+    print(cap.text)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        Timed best=42.0 s, mean=42.0 +- 0.0 s for foo
+        ''').strip()
+
+    with CaptureStdout() as cap:
+        HackedTimerit(3, label='foo', verbose=2).call(lambda: None)
+    print(cap.text)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        Timed foo for: 3 loops, best of 3
+            time per loop: best=42.0 s, mean=42.0 +- 0.0 s
+        ''').strip()
+
+    with CaptureStdout() as cap:
+        HackedTimerit(3, label='foo', verbose=3).call(lambda: None)
+    print(cap.text)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        Timing foo for: 3 loops, best of 3
+        Timed foo for: 3 loops, best of 3
+            body took: 126.0 s
+            time per loop: best=42.0 s, mean=42.0 +- 0.0 s
+        ''').strip()
 
 
 def test_timer_default_verbosity():
@@ -71,6 +146,36 @@ def test_timer_error():
 def test_verbose_report():
     t = Timerit(10, 'alabel').call(lambda: None)
     t.report()
+
+
+def test_nonstandard_timer():
+    timer = HackedTimer()
+    with timer:
+        pass
+    # We know exactly how much time should be measured here
+    assert timer.elapsed == timer.inc
+    assert timer.toc() == timer.inc * 2
+    assert timer.toc() == timer.inc * 3
+
+
+def test_nonstandard_timerit_precise():
+    ti = HackedTimerit()
+    for timer in ti:
+        with timer:
+            pass
+    assert ti.mean() == ti.inc
+    assert ti.min() == ti.inc
+    assert ti.std() == 0
+
+
+def test_nonstandard_timerit_concise():
+    ti = HackedTimerit()
+    for timer in ti:
+        pass
+    assert ti.mean() == ti.inc
+    assert ti.min() == ti.inc
+    assert ti.std() == 0
+
 
 if __name__ == '__main__':
     r"""
