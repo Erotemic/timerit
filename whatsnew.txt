@@ -1,3 +1,8 @@
+Version 0.1.0
+=============
+* added `Timerit.reset`
+
+
 Version 0.0.2
 =============
 * Added unit keyword arg to Timerit. This forces a Timerit objects to report
