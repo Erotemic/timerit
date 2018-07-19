@@ -177,6 +177,70 @@ def test_nonstandard_timerit_concise():
     assert ti.std() == 0
 
 
+def test_timer_context():
+
+    class ManualTime(object):
+        """
+        Time object that only measures time when you manually tick it
+        """
+        def __init__(self):
+            self.time = 0
+
+        def tic(self, n=1):
+            self.time += n
+
+        def __call__(self):
+            return self.time
+
+    manual_time = ManualTime()
+
+    class ManualTimer(Timer):
+        _default_time = manual_time
+
+    class ManualTimerit(Timerit):
+        _default_timer_cls = ManualTimer
+        _default_asciimode = True
+
+    # Test that manual timer works as expected
+    with ManualTimer() as t:
+        pass
+    assert t.elapsed == 0
+    with ManualTimer() as t:
+        manual_time.tic(n=3)
+    assert t.elapsed == 3
+
+    # Test that timerit works without a context manager
+    for timer in ManualTimerit(num=100, bestof=10, verbose=2):
+        pass
+    assert timer.parent.total_time == 0
+    assert timer.parent.min() == 0
+
+    for timer in ManualTimerit(num=100, bestof=10, verbose=2):
+        manual_time.tic()
+    assert timer.parent.total_time == 100
+    assert timer.parent.min() == 1
+
+    for timer in ManualTimerit(num=100, bestof=10, verbose=2):
+        manual_time.tic(2)
+    assert timer.parent.total_time == 200
+    assert timer.parent.min() == 2
+
+    # Test that timerit only records time in a context manager when given
+    for timer in ManualTimerit(num=100, bestof=10, verbose=2):
+        manual_time.tic()
+        with timer:
+            pass
+    assert timer.parent.total_time == 0
+    assert timer.parent.min() == 0
+
+    for timer in ManualTimerit(num=100, bestof=10, verbose=2):
+        manual_time.tic()
+        with timer:
+            manual_time.tic(2)
+    assert timer.parent.total_time == 200
+    assert timer.parent.min() == 2
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

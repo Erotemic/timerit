@@ -54,6 +54,9 @@ class Timer(object):
         >>> assert elapsed1 <= elapsed2
         >>> assert elapsed2 <= elapsed3
     """
+
+    _default_time = default_time
+
     def __init__(self, label='', verbose=None, newline=True):
         if verbose is None:
             verbose = bool(label)
@@ -64,7 +67,7 @@ class Timer(object):
         self.elapsed = -1
         self.write = sys.stdout.write
         self.flush = sys.stdout.flush
-        self._time = default_time
+        self._time = self._default_time
 
     def tic(self):
         """ starts the timer """
@@ -147,6 +150,12 @@ class Timerit(object):
         Timed precise for: 15 loops, best of 3
             time per loop: best=2.474 ms, mean=2.54 ± 0.046 ms
     """
+
+    _default_timer_cls = Timer
+    _default_asciimode = None
+    _default_precision = 3
+    _default_precision_type = 'f'  # could also be reasonably be 'g' or ''
+
     def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None):
         if verbose is None:
             verbose = bool(label)
@@ -162,10 +171,10 @@ class Timerit(object):
         self.total_time = None
 
         # Internal variables
-        self._timer_cls = Timer
-        self._precision = 4
-        # self._precision = '4f'
-        self._asciimode = None
+        self._timer_cls = self._default_timer_cls
+        self._asciimode = self._default_asciimode
+        self._precision = self._default_precision
+        self._precision_type = self._default_precision_type
 
     def reset(self, label=None):
         """
@@ -338,13 +347,14 @@ class Timerit(object):
         std = self.std()
         unit_std = std / mag
         pm = _trychar('±', '+-', self._asciimode)
-        fmtstr = ('best={min:.{pr1}} {unit}, '
-                  'mean={mean:.{pr1}} {pm} {std:.{pr2}} {unit}')
+        fmtstr = ('best={min:.{pr1}{t}} {unit}, '
+                  'mean={mean:.{pr1}{t}} {pm} {std:.{pr2}{t}} {unit}')
         pr1 = pr2 = self._precision
         if isinstance(self._precision, int):  # pragma: nobranch
             pr2 = max(self._precision - 2, 1)
         unit_str = fmtstr.format(min=unit_min, unit=unit, mean=unit_mean,
-                                 pm=pm, std=unit_std, pr1=pr1, pr2=pr2)
+                                 t=self._precision_type, pm=pm, std=unit_std,
+                                 pr1=pr1, pr2=pr2)
         return unit_str
 
     def _status_line(self, tense='past'):
@@ -388,8 +398,9 @@ class Timerit(object):
             if verbose >= 3:
                 unit, mag = _choose_unit(self.total_time, self.unit,
                                          self._asciimode)
-                lines.append('    body took: {total:.{pr}} {unit}'.format(
+                lines.append('    body took: {total:.{pr}{t}} {unit}'.format(
                     total=self.total_time / mag,
+                    t=self._precision_type,
                     pr=self._precision, unit=unit))
             lines.append('    time per loop: {}'.format(self._seconds_str()))
         else:
