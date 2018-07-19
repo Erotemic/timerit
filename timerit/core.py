@@ -36,6 +36,7 @@ class Timer(object):
 
     Example:
         >>> # Create and start the timer using the context manager
+        >>> from timerit import Timer
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
         >>>     math.factorial(10000)
@@ -45,6 +46,7 @@ class Timer(object):
 
     Example:
         >>> # Create and start the timer using the tic/toc interface
+        >>> from timerit import Timer
         >>> timer = Timer().tic()
         >>> elapsed1 = timer.toc()
         >>> elapsed2 = timer.toc()
@@ -114,6 +116,7 @@ class Timerit(object):
         python -m timerit.core Timerit:0
 
     Example:
+        >>> from timerit import Timerit
         >>> num = 15
         >>> t1 = Timerit(num, label='factorial', verbose=1)
         >>> for timer in t1:
@@ -129,6 +132,7 @@ class Timerit(object):
 
     Example:
         >>> # xdoc: +IGNORE_WANT
+        >>> from timerit import Timerit
         >>> num = 10
         >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
@@ -146,17 +150,46 @@ class Timerit(object):
     def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None):
         if verbose is None:
             verbose = bool(label)
+
         self.num = num
         self.label = label
-        self.times = []
-        self.verbose = verbose
-        self.total_time = None
-        self.n_loops = None
         self.bestof = bestof
         self.unit = unit
+        self.verbose = verbose
+
+        self.times = []
+        self.n_loops = None
+        self.total_time = None
+
+        # Internal variables
         self._timer_cls = Timer
         self._precision = 4
+        # self._precision = '4f'
         self._asciimode = None
+
+    def reset(self, label=None):
+        """
+        clears all measurements, allowing the object to be reused
+
+        Args:
+            label (str, optional) : optionally change the label
+
+        Example:
+            >>> from timerit import Timerit
+            >>> ti = Timerit(num=10, unit='us', verbose=True)
+            >>> _ = ti.reset(label='10!').call(math.factorial, 10)
+            Timed best=...s, mean=...s for 10!
+            >>> _ = ti.reset(label='20!').call(math.factorial, 20)
+            Timed best=...s, mean=...s for 20!
+            >>> _ = ti.reset().call(math.factorial, 20)
+            Timed best=...s, mean=...s for 20!
+        """
+        if label:
+            self.label = label
+        self.times = []
+        self.n_loops = None
+        self.total_time = None
+        return self
 
     def call(self, func, *args, **kwargs):
         """
@@ -307,8 +340,9 @@ class Timerit(object):
         pm = _trychar('±', '+-', self._asciimode)
         fmtstr = ('best={min:.{pr1}} {unit}, '
                   'mean={mean:.{pr1}} {pm} {std:.{pr2}} {unit}')
-        pr1 = self._precision
-        pr2 = max(self._precision - 2, 1)
+        pr1 = pr2 = self._precision
+        if isinstance(self._precision, int):  # pragma: nobranch
+            pr2 = max(self._precision - 2, 1)
         unit_str = fmtstr.format(min=unit_min, unit=unit, mean=unit_mean,
                                  pm=pm, std=unit_std, pr1=pr1, pr2=pr2)
         return unit_str
