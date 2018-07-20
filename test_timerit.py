@@ -89,7 +89,7 @@ def test_hacked_timerit_verbose():
     print(cap.text)
     assert cap.text.strip() == textwrap.dedent(
         '''
-        Timed best=42.0 s, mean=42.0 +- 0.0 s for foo
+        Timed best=42.000 s, mean=42.000 +- 0.0 s for foo
         ''').strip()
 
     with CaptureStdout() as cap:
@@ -98,7 +98,7 @@ def test_hacked_timerit_verbose():
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timed foo for: 3 loops, best of 3
-            time per loop: best=42.0 s, mean=42.0 +- 0.0 s
+            time per loop: best=42.000 s, mean=42.000 +- 0.0 s
         ''').strip()
 
     with CaptureStdout() as cap:
@@ -108,8 +108,8 @@ def test_hacked_timerit_verbose():
         '''
         Timing foo for: 3 loops, best of 3
         Timed foo for: 3 loops, best of 3
-            body took: 126.0 s
-            time per loop: best=42.0 s, mean=42.0 +- 0.0 s
+            body took: 126.000 s
+            time per loop: best=42.000 s, mean=42.000 +- 0.0 s
         ''').strip()
 
 
