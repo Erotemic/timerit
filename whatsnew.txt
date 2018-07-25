@@ -1,3 +1,11 @@
+Version 0.1.1
+=============
+* added `Timerit.reset`
+* Timer and Timerit now have class-level default objects and instance specific
+  instances which can be overwritten for tests / custom purposes. 
+* Tweaked precision formatting in reports
+
+
 Version 0.1.0
 =============
 * added `Timerit.reset`
