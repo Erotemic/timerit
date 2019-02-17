@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
-import math
 import sys
-import gc
 import itertools as it
-from collections import OrderedDict
 
 __all__ = ['Timer', 'Timerit']
 
@@ -36,6 +33,7 @@ class Timer(object):
 
     Example:
         >>> # Create and start the timer using the context manager
+        >>> import math
         >>> from timerit import Timer
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
@@ -120,6 +118,7 @@ class Timerit(object):
 
     Example:
         >>> from timerit import Timerit
+        >>> import math
         >>> num = 15
         >>> t1 = Timerit(num, label='factorial', verbose=1)
         >>> for timer in t1:
@@ -135,6 +134,7 @@ class Timerit(object):
 
     Example:
         >>> # xdoc: +IGNORE_WANT
+        >>> import math
         >>> from timerit import Timerit
         >>> num = 10
         >>> # If the timer object is unused, time will still be recorded,
@@ -185,6 +185,7 @@ class Timerit(object):
 
         Example:
             >>> from timerit import Timerit
+            >>> import math
             >>> ti = Timerit(num=10, unit='us', verbose=True)
             >>> _ = ti.reset(label='10!').call(math.factorial, 10)
             Timed best=...s, mean=...s for 10!
@@ -209,6 +210,7 @@ class Timerit(object):
                 to output a report to stdout.
 
         Example:
+            >>> import math
             >>> time = Timerit(num=10).call(math.factorial, 50).min()
             >>> assert time > 0
         """
@@ -276,6 +278,7 @@ class Timerit(object):
             float: minimum measured seconds over all trials
 
         Example:
+            >>> import math
             >>> self = Timerit(num=10, verbose=0)
             >>> self.call(math.factorial, 50)
             >>> assert self.min() > 0
@@ -295,6 +298,7 @@ class Timerit(object):
             mean in most cases.
 
         Example:
+            >>> import math
             >>> self = Timerit(num=10, verbose=0)
             >>> self.call(math.factorial, 50)
             >>> assert self.mean() > 0
@@ -316,10 +320,12 @@ class Timerit(object):
             not often useful. Typically the minimum value is most informative.
 
         Example:
+            >>> import math
             >>> self = Timerit(num=10, verbose=1)
             >>> self.call(math.factorial, 50)
             >>> assert self.std() >= 0
         """
+        import math
         chunk_iter = chunks(self.times, self.bestof)
         times = list(map(min, chunk_iter))
         mean = sum(times) / len(times)
@@ -387,6 +393,7 @@ class Timerit(object):
             Timerit.print
 
         Example:
+            >>> import math
             >>> ti = Timerit(num=1).call(math.factorial, 5)
             >>> print(ti.report(verbose=1))
             Timed best=...s, mean=...s
@@ -423,6 +430,7 @@ class Timerit(object):
             Timerit.report
 
         Example:
+            >>> import math
             >>> Timerit(num=10).call(math.factorial, 50).print(verbose=1)
             Timed best=...s, mean=...s
             >>> Timerit(num=10).call(math.factorial, 50).print(verbose=2)
@@ -455,6 +463,7 @@ class ToggleGC(object):
         self.prev = None
 
     def __enter__(self):
+        import gc
         self.prev = gc.isenabled()
         if self.flag:
             gc.enable()
@@ -462,6 +471,7 @@ class ToggleGC(object):
             gc.disable()
 
     def __exit__(self, ex_type, ex_value, trace):
+        import gc
         if self.prev:
             gc.enable()
         else:
@@ -487,6 +497,7 @@ def _choose_unit(value, unit=None, asciimode=None):
         >>> assert _choose_unit(1e-4, unit=None, asciimode=True)[0] == 'us'
         >>> assert _choose_unit(1.1, unit='ns')[0] == 'ns'
     """
+    from collections import OrderedDict
     micro = _trychar('µs', 'us', asciimode)
     units = OrderedDict([
         ('s', ('s', 1e0)),
