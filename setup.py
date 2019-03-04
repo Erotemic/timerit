@@ -117,17 +117,16 @@ def parse_requirements(fname='requirements.txt'):
 version = parse_version('timerit')  # needs to be a global var for git tags
 
 if __name__ == '__main__':
-    install_requires = parse_requirements('requirements.txt')
-
     setup(
         name='timerit',
         version=version,
         author='Jon Crall',
         description='A powerful multiline alternative to timeit',
         long_description=parse_description(),
-        install_requires=install_requires,
+        install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
-            'all': parse_requirements('optional-requirements.txt')
+            'all': parse_requirements('requirements.txt'),
+            'tests': parse_requirements('requirements/tests.txt'),
         },
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/timerit',
