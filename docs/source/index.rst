@@ -1,14 +1,7 @@
 :github_url: https://github.com/Erotemic/ubelt
 
-reponice documentation
-======================
-
-REPO_NICE=Timerit
-
-You have to populate the index page yourself 
-
-TODO: have someone who understands this write docs
-
+Timerit documentation
+=====================
 
 .. The __init__ files contains the top-level documentation overview
 .. automodule:: timerit.__init__

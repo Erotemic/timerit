@@ -105,12 +105,13 @@ class Timerit(object):
     """
     Reports the average time to run a block of code.
 
-    Unlike `timeit`, `Timerit` can handle multiline blocks of code
+    Unlike `timeit`, `timerit.Timerit` can handle multiline blocks of code
 
     Args:
-        num (int): number of times to run the loop
-        label (str): identifier for printing
-        bestof (int): takes the max over this number of trials
+        num (int, default=1): number of times to run the loop
+        label (str, default=None): identifier for printing
+        bestof (int, default=3): takes the max over this number of trials
+        unit (str): what units time is reported in
         verbose (int): verbosity flag, defaults to True if label is given
 
     CommandLine:
@@ -206,8 +207,8 @@ class Timerit(object):
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            self (Timerit): Use `min`, or `mean` to get a scalar. Use `print`
-                to output a report to stdout.
+            self (timerit.Timerit): Use `min`, or `mean` to get a scalar. Use
+                `print` to output a report to stdout.
 
         Example:
             >>> import math
@@ -390,7 +391,7 @@ class Timerit(object):
             str: the report
 
         SeeAlso:
-            Timerit.print
+            timerit.Timerit.print
 
         Example:
             >>> import math
@@ -427,7 +428,7 @@ class Timerit(object):
             verbose (int): verbosity level
 
         SeeAlso:
-            Timerit.report
+            timerit.Timerit.report
 
         Example:
             >>> import math

@@ -14,7 +14,7 @@ Easily do robust timings on existing blocks of code by simply indenting
 them. There is no need to refactor into a string representation or
 convert to a single line.
 
-This is the standalone version of a utility currently in
+This is a standalone version of a utility distributed with 
 `ubelt <https://github.com/Erotemic/ubelt>`__.
 
 Installation
