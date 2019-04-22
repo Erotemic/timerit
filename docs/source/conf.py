@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'timerit'
-copyright = '2018, Jon Crall'
+copyright = '2019, Jon Crall'
 author = 'Jon Crall'
 
 # The short X.Y version
@@ -174,12 +174,12 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
-todo_include_todos = True
+todo_include_todos = Truetodo_include_todos = True
 napoleon_google_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = True
 autodoc_inherit_docstrings = False
+autodoc_member_order = 'bysource'
 
 html_theme_options = {
     'collapse_navigation': False,
