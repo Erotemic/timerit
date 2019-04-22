@@ -1,4 +1,6 @@
 
+cd
+
 REPO_NAME=timerit
 REPO_DPATH=$HOME/code/$REPO_NAME
 PKG_DPATH=$REPO_DPATH/$REPO_NAME
@@ -70,3 +72,32 @@ cd $REPO_DPATH/docs
 make html
 
 google-chrome build/html/index.html
+
+
+
+echo "$(codeblock "
+# .readthedocs.yml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats: all
+
+# Optionally set the version of Python and requirements required to build your docs
+python:
+  version: 3.7
+  install:
+    requirements:
+       - docs/requirements.txt
+    extra_requirements:
+       - docs
+    
+
+")" > $REPO_DPATH/.readthedocs.yml

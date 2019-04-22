@@ -24,8 +24,11 @@ copyright = '2019, Jon Crall'
 author = 'Jon Crall'
 
 # The short X.Y version
-import timerit
-version = '.'.join(timerit.__version__.split('.')[0:2])
+try:
+    import timerit
+    version = '.'.join(timerit.__version__.split('.')[0:2])
+except Exception:
+    version = 'unknown-error-importing-version'
 # The full version, including alpha/beta/rc tags
 release = ''
 
