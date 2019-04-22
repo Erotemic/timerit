@@ -5,7 +5,7 @@ Timerit
 
 A powerful multiline alternative to Python's builtin ``timeit`` module.
 
-Docs will be written at https://timerit.readthedocs.io/en/latest/
+Docs are being written at https://timerit.readthedocs.io/en/latest/
 
 Description
 -----------
