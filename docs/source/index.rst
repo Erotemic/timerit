@@ -1,23 +1,26 @@
-.. timerit documentation master file, created by
-   sphinx-quickstart on Mon Apr 22 00:01:36 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+:github_url: https://github.com/Erotemic/ubelt
 
-Welcome to timerit's documentation!
-===================================
+reponice documentation
+======================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+REPO_NICE=Timerit
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 You have to populate the index page yourself 
 
 TODO: have someone who understands this write docs
+
+
+.. The __init__ files contains the top-level documentation overview
+.. automodule:: timerit.__init__
+   :show-inheritance:
+
+.. commented out
+.. :members:
+.. :undoc-members:
+
+
+.. toctree::
+   :maxdepth: 8
+   :caption: API
+
+   modules

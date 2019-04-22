@@ -2,11 +2,25 @@
 cd
 
 REPO_NAME=timerit
+#REPO_NICE=$REPO_NAME
+REPO_NICE=Timerit
 REPO_DPATH=$HOME/code/$REPO_NAME
 PKG_DPATH=$REPO_DPATH/$REPO_NAME
 
 
+echo "REPO_DPATH = $REPO_DPATH"
+echo "PKG_DPATH = $PKG_DPATH"
+
 echo "MAKING DOCS"
+
+
+echo "$(codeblock "
+sphinx
+-e git://github.com/snide/sphinx_rtd_theme.git#egg=sphinx_rtd_theme
+")" >  $REPO_DPATH/docs/requirements.txt
+pip install -r $REPO_DPATH/docs/requirements.txt
+
+
 rm -rf $REPO_DPATH/docs
 mkdir -p $REPO_DPATH/docs
 sphinx-quickstart -q --sep \
@@ -20,15 +34,6 @@ sphinx-quickstart -q --sep \
     $REPO_DPATH/docs
 
 
-echo "$(codeblock "
-sphinx
--e git://github.com/snide/sphinx_rtd_theme.git#egg=sphinx_rtd_theme
-")" >  $REPO_DPATH/docs/requirements.txt
-
-
-pip install -r $REPO_DPATH/docs/requirements.txt
-
-
 # Now populate $REPO_DPATH/docs/source/index.rst and $REPO_DPATH/docs/source/conf.py 
 
 
@@ -36,10 +41,6 @@ pip install -r $REPO_DPATH/docs/requirements.txt
 sed -i "s/html_theme = 'alabaster'/import sphinx_rtd_theme  # NOQA\nhtml_theme = 'sphinx_rtd_theme'\nhtml_theme_path = [sphinx_rtd_theme.get_html_theme_path()]/g" $REPO_DPATH/docs/source/conf.py
 
 sed -i "s/version = ''/import $REPO_NAME\nversion = '.'.join($REPO_NAME.__version__.split('.')[0:2])/g" $REPO_DPATH/docs/source/conf.py
-
-sphinx-apidoc -f -o $REPO_DPATH/docs/source $PKG_DPATH --separate
-echo "REPO_DPATH = $REPO_DPATH"
-echo "PKG_DPATH = $PKG_DPATH"
 
 
 echo "$(codeblock "
@@ -56,17 +57,45 @@ html_theme_options = {
     # 'logo_only': True,
 }
     
+
 ")" >> $REPO_DPATH/docs/source/conf.py
 
 
 echo "$(codeblock "
 
+:github_url: https://github.com/Erotemic/ubelt
+
+reponice documentation
+======================
+
+REPO_NICE=$REPO_NICE
+
 You have to populate the index page yourself 
 
 TODO: have someone who understands this write docs
-    
-")" >> $REPO_DPATH/docs/source/index.rst
 
+
+.. The __init__ files contains the top-level documentation overview
+.. automodule:: $REPO_NAME.__init__
+   :show-inheritance:
+
+.. commented out
+.. :members:
+.. :undoc-members:
+
+
+.. toctree::
+   :maxdepth: 8
+   :caption: API
+
+   modules
+    
+")" > $REPO_DPATH/docs/source/index.rst
+
+
+
+cd $REPO_DPATH/docs
+sphinx-apidoc -f -o $REPO_DPATH/docs/source $PKG_DPATH --separate
 
 cd $REPO_DPATH/docs
 make html
