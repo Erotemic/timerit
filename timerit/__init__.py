@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Timerit is a powerful multiline alternative to Python's builtin ``timeit`` module.
 
@@ -25,7 +26,7 @@ a single line, but including more is trivial.
     >>> print('t1.total_time = %r' % (t1.total_time,))
     Timing for 200 loops
     Timed for: 200 loops, best of 3
-        time per loop: best=2.064 ms, mean=2.115 ± 0.05 ms
+        time per loop: best=2.064 ms, mean=2.115 +- 0.05 ms
     t1.total_time = 0.4427177629695507
 
 
@@ -33,6 +34,7 @@ Mkinit:
     mkinit timerit --nomods --relative
     # TODO: get sphinx to ignore these mkinit-blocks
 """
+from __future__ import unicode_literals
 __version__ = '0.2.1'
 from .core import (Timer, Timerit,)
 __all__ = ['Timer', 'Timerit']
