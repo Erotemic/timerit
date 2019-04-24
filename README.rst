@@ -1,4 +1,4 @@
-|Travis| |Codecov| |Appveyor| |Pypi|
+|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
 
 Timerit
 =======
@@ -86,10 +86,16 @@ With the Timerit version:
         time per loop: best=4.828 µs, mean=4.828 ± 0.0 µs
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/timerit/master.svg?label=Travis%20CI
-   :target: https://travis-ci.org/Erotemic/timerit
+   :target: https://travis-ci.org/Erotemic/timerit?branch=master
 .. |Codecov| image:: https://codecov.io/github/Erotemic/timerit/badge.svg?branch=master&service=github
    :target: https://codecov.io/github/Erotemic/timerit?branch=master
-.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/timerit?svg=True
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/timerit?branch=master&svg=True
    :target: https://ci.appveyor.com/project/Erotemic/timerit/branch/master
 .. |Pypi| image:: https://img.shields.io/pypi/v/timerit.svg
    :target: https://pypi.python.org/pypi/timerit
+.. |Downloads| image:: https://img.shields.io/pypi/dm/timerit.svg
+   :target: https://pypi.python.org/pypi/timerit
+.. |CircleCI| image:: https://circleci.com/gh/Erotemic/timerit.svg?style=svg
+    :target: https://circleci.com/gh/Erotemic/timerit
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/timerit/badge/?version=latest
+    :target: http://timerit.readthedocs.io/en/latest/
