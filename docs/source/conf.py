@@ -15,6 +15,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -24,11 +25,8 @@ copyright = '2019, Jon Crall'
 author = 'Jon Crall'
 
 # The short X.Y version
-try:
-    import timerit
-    version = '.'.join(timerit.__version__.split('.')[0:2])
-except Exception:
-    version = 'unknown-error-importing-version'
+import timerit  # NOQA
+version = '.'.join(timerit.__version__.split('.')[0:2])
 # The full version, including alpha/beta/rc tags
 release = ''
 
