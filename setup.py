@@ -127,6 +127,7 @@ if __name__ == '__main__':
         extras_require={
             'all': parse_requirements('requirements.txt'),
             'tests': parse_requirements('requirements/tests.txt'),
+            'docs': parse_requirements('docs/requirements.txt'),
         },
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/timerit',
