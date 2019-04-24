@@ -94,7 +94,7 @@ With the Timerit version:
 .. |Pypi| image:: https://img.shields.io/pypi/v/timerit.svg
    :target: https://pypi.python.org/pypi/timerit
 .. |Downloads| image:: https://img.shields.io/pypi/dm/timerit.svg
-   :target: https://pypi.python.org/pypi/timerit
+   :target: https://pypistats.org/packages/timerit
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/timerit.svg?style=svg
     :target: https://circleci.com/gh/Erotemic/timerit
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/timerit/badge/?version=latest
