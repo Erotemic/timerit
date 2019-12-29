@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
+"""
+Timerit exists here as a standalone module. The ubelt library also contains a
+copy.
+
+First, :class:`Timer` is a context manager that times a block of indented
+code. Also has `tic` and `toc` methods for a more matlab like feel.
+
+Next, :class:`Timerit` is an alternative to the builtin timeit module. I think
+its better at least, maybe Tim Peters can show me otherwise. Perhaps there's a
+reason it has to work on strings and can't be placed around existing code like
+a with statement.
+"""
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import sys
 import itertools as it
+from collections import defaultdict, OrderedDict
 
 __all__ = ['Timer', 'Timerit']
+
 
 if sys.version_info.major == 2:  # nocover
     default_time = time.clock if sys.platform.startswith('win32') else time.time
@@ -19,22 +34,20 @@ class Timer(object):
     with-statement context manager, or using the tic/toc api.
 
     Args:
-        label (str): identifier for printing, defaults to ''
-        verbose (int): verbosity flag, defaults to True if label is given
-        newline (bool): if False and verbose, print tic and toc on the same
-            line, defaults to True
+        label (str, default=''):
+            identifier for printing
+        verbose (int, default=None):
+            verbosity flag, defaults to True if label is given
+        newline (bool, default=True):
+            if False and verbose, print tic and toc on the same line
 
     Attributes:
         elapsed (float): number of seconds measured by the context manager
         tstart (float): time of last `tic` reported by `self._time()`
 
-    CommandLine:
-        python -m timerit.core Timer
-
     Example:
         >>> # Create and start the timer using the context manager
         >>> import math
-        >>> from timerit import Timer
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
         >>>     math.factorial(10000)
@@ -44,7 +57,6 @@ class Timer(object):
 
     Example:
         >>> # Create and start the timer using the tic/toc interface
-        >>> from timerit import Timer
         >>> timer = Timer().tic()
         >>> elapsed1 = timer.toc()
         >>> elapsed2 = timer.toc()
@@ -96,16 +108,15 @@ class Timer(object):
             return False
 
 
-def chunks(seq, size):
-    """ simple two-line alternative to `ubelt.chunks` """
-    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
-
-
 class Timerit(object):
     """
     Reports the average time to run a block of code.
 
-    Unlike `timeit`, `timerit.Timerit` can handle multiline blocks of code
+    Unlike `%timeit`, `Timerit` can handle multiline blocks of code. It runs
+    inline, and doesn't depend on magic or strings. Just indent your code and
+    place in a Timerit block. See https://github.com/Erotemic/vimtk for
+    vim functions that will insert one of these in for you (ok that part is a
+    little magic).
 
     Args:
         num (int, default=1): number of times to run the loop
@@ -114,11 +125,11 @@ class Timerit(object):
         unit (str): what units time is reported in
         verbose (int): verbosity flag, defaults to True if label is given
 
-    CommandLine:
-        python -m timerit.core Timerit:0
+    Attributes:
+        measures - labeled measurements taken by this object
+        rankings - ranked measurements (useful if more than one measurement was taken)
 
     Example:
-        >>> from timerit import Timerit
         >>> import math
         >>> num = 15
         >>> t1 = Timerit(num, label='factorial', verbose=1)
@@ -136,7 +147,6 @@ class Timerit(object):
     Example:
         >>> # xdoc: +IGNORE_WANT
         >>> import math
-        >>> from timerit import Timerit
         >>> num = 10
         >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
@@ -171,21 +181,24 @@ class Timerit(object):
         self.n_loops = None
         self.total_time = None
 
+        # Keep track of measures
+        self.measures = defaultdict(dict)
+
         # Internal variables
         self._timer_cls = self._default_timer_cls
         self._asciimode = self._default_asciimode
         self._precision = self._default_precision
         self._precision_type = self._default_precision_type
 
-    def reset(self, label=None):
+    def reset(self, label=None, measures=False):
         """
         clears all measurements, allowing the object to be reused
 
         Args:
-            label (str, optional) : optionally change the label
+            label (str, optional) : change the label if specified
+            measures (bool, default=False): if True reset measures
 
         Example:
-            >>> from timerit import Timerit
             >>> import math
             >>> ti = Timerit(num=10, unit='us', verbose=True)
             >>> _ = ti.reset(label='10!').call(math.factorial, 10)
@@ -194,9 +207,12 @@ class Timerit(object):
             Timed best=...s, mean=...s for 20!
             >>> _ = ti.reset().call(math.factorial, 20)
             Timed best=...s, mean=...s for 20!
+            >>> _ = ti.reset(measures=True).call(math.factorial, 20)
         """
         if label:
             self.label = label
+        if measures:
+            self.measures = defaultdict(dict)
         self.times = []
         self.n_loops = None
         self.total_time = None
@@ -207,7 +223,7 @@ class Timerit(object):
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            self (timerit.Timerit): Use `min`, or `mean` to get a scalar. Use
+            self (Timerit): Use `min`, or `mean` to get a scalar. Use
                 `print` to output a report to stdout.
 
         Example:
@@ -230,11 +246,11 @@ class Timerit(object):
         bg_timer = self._timer_cls(verbose=0)   # (ideally this is unused)
         fg_timer = self._timer_cls(verbose=0)   # (used directly by user)
         # give the forground timer a reference to this object, so the user can
-        # access this object while still constructing the timerit object inline
+        # access this object while still constructing the Timerit object inline
         # with the for loop.
         fg_timer.parent = self
         # disable the garbage collector while timing
-        with ToggleGC(False):
+        with _ToggleGC(False):
             # Core timing loop
             for i in it.repeat(None, self.num):
                 # Start background timer (in case the user doesn't use fg_timer)
@@ -255,8 +271,67 @@ class Timerit(object):
                 self.n_loops += 1
         # Timing complete, print results
         assert len(self.times) == self.num, 'incorrectly recorded times'
+
+        self._record_measurement()
+
         if self.verbose > 0:
             self.print(self.verbose)
+
+    def _record_measurement(self):
+        """
+        Saves the current time measurements for the current labels.
+        """
+        measures = self.measures
+        measures['mean'][self.label] = self.mean()
+        measures['min'][self.label] = self.min()
+        measures['mean-std'][self.label] = self.mean() - self.std()
+        measures['mean+std'][self.label] = self.mean() + self.std()
+        return measures
+
+    @property
+    def rankings(self):
+        """
+        Orders each list of measurements by ascending time
+
+        Example:
+            >>> import math
+            >>> ti = Timerit(num=1)
+            >>> _ = ti.reset('a').call(math.factorial, 5)
+            >>> _ = ti.reset('b').call(math.factorial, 10)
+            >>> _ = ti.reset('c').call(math.factorial, 20)
+            >>> ti.rankings
+            >>> ti.consistency
+        """
+        rankings = {
+            k: OrderedDict(sorted(d.items(), key=lambda kv: kv[1]))
+            for k, d in self.measures.items()
+        }
+        return rankings
+
+    @property
+    def consistency(self):
+        """"
+        Take the hamming distance between the preference profiles to as a
+        measure of consistency.
+        """
+        import itertools as it
+
+        rankings = self.rankings
+
+        if len(rankings) == 0:
+            raise Exception('no measurements')
+
+        hamming_sum = sum(
+            k1 != k2
+            for v1, v2 in it.combinations(rankings.values(), 2)
+            for k1, k2 in zip(v1.keys(), v2.keys())
+        )
+        num_labels = len(list(rankings.values())[0])
+        num_metrics = len(rankings)
+        num_bits = (num_metrics * (num_metrics - 1) // 2) * num_labels
+        hamming_ave = hamming_sum / num_bits
+        score = 1.0 - hamming_ave
+        return score
 
     def min(self):
         """
@@ -304,7 +379,7 @@ class Timerit(object):
             >>> self.call(math.factorial, 50)
             >>> assert self.mean() > 0
         """
-        chunk_iter = chunks(self.times, self.bestof)
+        chunk_iter = _chunks(self.times, self.bestof)
         times = list(map(min, chunk_iter))
         mean = sum(times) / len(times)
         return mean
@@ -327,7 +402,7 @@ class Timerit(object):
             >>> assert self.std() >= 0
         """
         import math
-        chunk_iter = chunks(self.times, self.bestof)
+        chunk_iter = _chunks(self.times, self.bestof)
         times = list(map(min, chunk_iter))
         mean = sum(times) / len(times)
         std = math.sqrt(sum((t - mean) ** 2 for t in times) / len(times))
@@ -368,7 +443,7 @@ class Timerit(object):
         """
         Text indicating what has been / is being done.
 
-        Doctest:
+        Example:
             >>> print(Timerit()._status_line(tense='past'))
             Timed for: 1 loops, best of 1
             >>> print(Timerit()._status_line(tense='present'))
@@ -391,7 +466,7 @@ class Timerit(object):
             str: the report
 
         SeeAlso:
-            timerit.Timerit.print
+            :func:`Timerit.print`
 
         Example:
             >>> import math
@@ -428,7 +503,7 @@ class Timerit(object):
             verbose (int): verbosity level
 
         SeeAlso:
-            timerit.Timerit.report
+            :func:`Timerit.report`
 
         Example:
             >>> import math
@@ -445,16 +520,16 @@ class Timerit(object):
         print(self.report(verbose=verbose))
 
 
-class ToggleGC(object):
+class _ToggleGC(object):
     """
     Context manager to disable garbage collection.
 
     Example:
         >>> import gc
         >>> prev = gc.isenabled()
-        >>> with ToggleGC(False):
+        >>> with _ToggleGC(False):
         >>>     assert not gc.isenabled()
-        >>>     with ToggleGC(True):
+        >>>     with _ToggleGC(True):
         >>>         assert gc.isenabled()
         >>>     assert not gc.isenabled()
         >>> assert gc.isenabled() == prev
@@ -479,6 +554,11 @@ class ToggleGC(object):
             gc.disable()
 
 
+def _chunks(seq, size):
+    """ simple (lighter?) two-line alternative to :func:`ubelt.chunks` """
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+
+
 def _choose_unit(value, unit=None, asciimode=None):
     """
     Finds a good unit to print seconds in
@@ -498,7 +578,6 @@ def _choose_unit(value, unit=None, asciimode=None):
         >>> assert _choose_unit(1e-4, unit=None, asciimode=True)[0] == 'us'
         >>> assert _choose_unit(1.1, unit='ns')[0] == 'ns'
     """
-    from collections import OrderedDict
     micro = _trychar('µs', 'us', asciimode)
     units = OrderedDict([
         ('s', ('s', 1e0)),
@@ -541,12 +620,3 @@ def _trychar(char, fallback, asciimode=None):  # nocover
         else:
             return char
     return fallback  # nocover
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m timerit.core all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module(__file__)
