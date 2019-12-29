@@ -33,7 +33,7 @@ install:
   - travis_retry pip install -e .
 
 script: 
-  - travis_wait pytest --xdoctest --cov-config=.coveragerc --cov-report=html --cov=timerit
+  - travis_wait ./run_tests.py 
 
 after_success: 
     - codecov 

@@ -19,3 +19,6 @@ exclude_lines =
     if __name__ == .__main__.:
     print(.*)
     .*if six.PY2:
+
+omit =
+    */setup.py
