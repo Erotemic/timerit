@@ -123,7 +123,7 @@ def parse_requirements(fname='requirements.txt', with_version=False):
 
 def native_mb_python_tag(plat_impl=None, version_info=None):
     """
-    Example:
+    Ignore:
         >>> print(native_mb_python_tag())
         >>> print(native_mb_python_tag('PyPy', (2, 7)))
         >>> print(native_mb_python_tag('CPython', (3, 8)))
