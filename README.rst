@@ -1,4 +1,4 @@
-|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
+|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
 
 Timerit
 =======
@@ -99,3 +99,5 @@ With the Timerit version:
     :target: https://circleci.com/gh/Erotemic/timerit
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/timerit/badge/?version=latest
     :target: http://timerit.readthedocs.io/en/latest/
+.. |CodeQuality| image:: https://api.codacy.com/project/badge/Grade/fdcedca723f24ec4be9c7067d91cb43b 
+    :target: https://www.codacy.com/manual/Erotemic/timerit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/timerit&amp;utm_campaign=Badge_Grade
