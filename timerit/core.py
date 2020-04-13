@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Timerit exists here as a standalone module. The ubelt library also contains a
-copy.
-
 First, :class:`Timer` is a context manager that times a block of indented
 code. Also has `tic` and `toc` methods for a more matlab like feel.
 
@@ -10,8 +7,28 @@ Next, :class:`Timerit` is an alternative to the builtin timeit module. I think
 its better at least, maybe Tim Peters can show me otherwise. Perhaps there's a
 reason it has to work on strings and can't be placed around existing code like
 a with statement.
-"""
 
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> import math
+    >>> timer = Timer('Timer demo!', verbose=1)
+    >>> with timer:
+    >>>     math.factorial(100000)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1453s
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> import math
+    >>> for timer in Timerit(num=200, verbose=3):
+    >>>     with timer:
+    >>>         math.factorial(10000)
+    Timing for 200 loops
+    Timed for: 200 loops, best of 3
+        time per loop: best=2.055 ms, mean=2.145 ± 0.083 ms
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import sys
