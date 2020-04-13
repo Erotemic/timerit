@@ -271,7 +271,8 @@ class Timerit(object):
                 self.n_loops += 1
         # Timing complete, print results
         if len(self.times) != self.num:
-            raise AssertionError('incorrectly recorded times')
+            raise AssertionError(
+                'incorrectly recorded times, need to reset timerit object')
 
         self._record_measurement()
 
