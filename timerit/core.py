@@ -198,7 +198,7 @@ class Timerit(object):
         self.n_loops = None
         self.total_time = None
 
-        # Keep track of measures
+        # Keep track of measures, does not change on reset by default
         self.measures = defaultdict(dict)
 
         # Internal variables
@@ -472,6 +472,20 @@ class Timerit(object):
             action=action, num=self.num, bestof=min(self.bestof, self.num))
         return line
 
+    def summary(self):
+        lines = []
+        # TODO: hook up comparisons in an intuitive manner
+        method_to_mean = self.rankings['mean']
+        prev_key = None
+        prev_val = None
+        for key, val in list(method_to_mean.items())[::-1]:
+            if prev_key:
+                pcnt = Relative.percent_faster(val, prev_val)
+                lines.append('{} is {:0.2f}% faster than {}'.format(key, pcnt, prev_key))
+            prev_key = key
+            prev_val = val
+        return '\n'.join(lines)
+
     def report(self, verbose=1):
         """
         Creates a human readable report
@@ -490,7 +504,23 @@ class Timerit(object):
             >>> ti = Timerit(num=1).call(math.factorial, 5)
             >>> print(ti.report(verbose=1))
             Timed best=...s, mean=...s
+
+            >>> import math
+            >>> import timerit
+            >>> it = timerit.Timerit(num=100)
+            >>> ti.reset('method1').call(math.factorial, 100)
+            >>> ti.reset('method2').call(math.factorial, 10)
+            >>> ti.reset('method3').call(math.factorial, 120)
+
+            self = ti
+            print('ti.measures = {}'.format(ub.repr2(ti.measures, nl=1, precision=5)))
+
+            >>> math.Timerit(num=10).call(math.factorial, 50).print(verbose=1)
+
         """
+        # ti = self
+        # print(ti.report())
+
         lines = []
         if verbose >= 2:
             # use a multi-line format for high verbosity
@@ -509,6 +539,7 @@ class Timerit(object):
             if self.label:
                 line += ' for ' + self.label
             lines.append(line)
+
         text = '\n'.join(lines)
         return text
 
@@ -525,11 +556,11 @@ class Timerit(object):
         Example:
             >>> import math
             >>> Timerit(num=10).call(math.factorial, 50).print(verbose=1)
-            Timed best=...s, mean=...s
             >>> Timerit(num=10).call(math.factorial, 50).print(verbose=2)
+            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=3)
+            Timed best=...s, mean=...s
             Timed for: 10 loops, best of 3
                 time per loop: best=...s, mean=...s
-            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=3)
             Timed for: 10 loops, best of 3
                 body took: ...
                 time per loop: best=...s, mean=...s
@@ -637,3 +668,119 @@ def _trychar(char, fallback, asciimode=None):  # nocover
         else:
             return char
     return fallback  # nocover
+
+
+class Relative:
+
+    def percent_faster(new, old):
+        """
+        `new` is `percent`% faster than `old`
+
+        Args:
+            new (float): measure of time
+            old (float): measure of time (with same units as new)
+
+        Returns:
+            percent: how much faster `new` is as a percentage of `old`
+
+        References:
+            https://stackoverflow.com/questions/8127862/how-do-you-calculate-how-much-faster-time-x-is-from-time-y-in-terms-of
+            https://math.stackexchange.com/questions/716767/how-to-calculate-the-percentage-of-increase-decrease-with-negative-numbers/716770#716770
+
+        Notes:
+            Equivalent to Relative.percent_smaller_than
+
+            new =
+            (1 - percent / 100) * old
+
+        Example:
+            >>> new = 8.59755
+            >>> old = 8.72848
+            >>> print('{:.3f}% faster'.format(Relative.percent_faster(new, old)))
+            1.500% faster
+            >>> new = 0.6053
+            >>> old = 1.3477
+            >>> Relative.percent_faster(new, old)
+            >>> print('{:.3f}% faster'.format(Relative.percent_faster(new, old)))
+            55.086% faster
+        """
+        return Relative.percent_smaller_than(new, old)
+
+    def percent_smaller_than(new, old):
+        """
+        `new` is `percent`% smaller than `old`
+        """
+        percent = Relative.percent_decrease(new, old)
+        return percent
+
+    def percent_decrease(new, old):
+        """
+        `new` is `percent`% smaller than `old`
+
+        >>> Relative.percent_decrease(1, 5)
+        80
+        >>> Relative.percent_decrease(8.6, 8.7)
+        1.14
+        """
+        assert new <= old
+        percent = Relative.percent_change(new, old)
+        return percent
+
+    def percent_increase(new, old):
+        """
+        `new` is `percent`% larger than `old`
+
+        Example:
+            >>> Relative.percent_increase(5, 1)
+            400.0
+            >>> Relative.percent_increase(8.6, 8.5)
+            1.17
+        """
+        assert new >= old
+        percent = -Relative.percent_change(new, old)
+        return percent
+
+    def percent_change(new, old):
+        """
+        `new` is `old` changed by `percent`
+
+        Notes:
+            negative numbers are percent increases
+            positive numbers are percent decreases
+
+        Example:
+            >>> Relative.percent_change(5, 1)
+            -400.0
+            >>> Relative.percent_change(1, 5)
+            80.0
+        """
+        decrease = (old - new)
+        frac = decrease / old
+        percent = frac * 100.0
+        return percent
+
+    def percent_slower(new, old):
+        """
+        `new` is X percent slower than `old`
+
+        Args:
+            new (float): measure of time
+            old (float): measure of time (with same units as new)
+
+        Returns:
+            precent_slower: how much slower `new` is as a percentage of `old`
+
+        Example:
+            >>> new = 8.59755
+            >>> old = 8.72848
+            >>> print('{:.3f}% slower'.format(Relative.percent_slower(new, old)))
+            1.500% slower
+            >>> new = 0.6053
+            >>> old = 1.3477
+            >>> Relative.percent_slower(new, old)
+            >>> print('{:.3f}% slower'.format(Relative.percent_slower(new, old)))
+            55.086% slower
+        """
+        assert new >= old
+        precent_slower = (old - new) / old * 100
+        return precent_slower
