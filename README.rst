@@ -83,6 +83,38 @@ With the Timerit version:
     Timed for: 1 loops, best of 1
         time per loop: best=4.828 µs, mean=4.828 ± 0.0 µs
 
+        
+How it works
+------------
+
+The timerit module defines ``timerit.Timerit``, which is an object that is
+iterable. It has an ``__iter__`` method that generates ``timerit.TimerTimer``
+objects, which are context managers. 
+
+    >>> import math
+    >>> from timerit import Timerit
+    >>> for timer in Timerit(num=200, verbose=2):
+    >>>     with timer:
+    >>>         math.factorial(10000)
+
+The timer context manager measures how much time the body of it takes by
+"tic"-ing ``__enter__`` and "toc"-ing on ``__exit__``. The underlying object
+has access to the context manager, so it is able to read its measurement. These
+measurements are stored and then we compute some statistics on them. Notably
+the minimum, mean, and standard-deviation of grouped (batched) running times.
+
+Unfortunately the syntax is one line and one indent bulker than I would prefer.
+However, a more consice version of the synax is available. 
+
+    >>> import math
+    >>> from timerit import Timerit
+    >>> for _ in Timerit(num=200, verbose=2):
+    >>>     math.factorial(10000)
+
+In this case the measurement is made in the `__iter__` method ``Timerit``
+object itself, which I believe contains slightly more overhead than the
+with-statement version. (I have seen evidence that this might actually be more
+accurate, but it needs further testing).
 
 Benchmark Recipe
 ----------------
@@ -157,7 +189,6 @@ Benchmark Recipe
         ax.set_xlabel('A better x-variable description')
         ax.set_ylabel('A better y-variable description')
 
-        
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/timerit/master.svg?label=Travis%20CI
    :target: https://travis-ci.org/Erotemic/timerit?branch=master
