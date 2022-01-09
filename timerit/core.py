@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
 """
-Timerit exists here as a standalone module. The ubelt library also contains a
-copy.
-
 First, :class:`Timer` is a context manager that times a block of indented
 code. Also has `tic` and `toc` methods for a more matlab like feel.
 
@@ -10,9 +6,44 @@ Next, :class:`Timerit` is an alternative to the builtin timeit module. I think
 its better at least, maybe Tim Peters can show me otherwise. Perhaps there's a
 reason it has to work on strings and can't be placed around existing code like
 a with statement.
-"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> #
+    >>> # The Timerit class allows for robust benchmarking based
+    >>> # It can be used in normal scripts by simply adjusting the indentation
+    >>> import math
+    >>> for timer in Timerit(num=12, verbose=3):
+    >>>     with timer:
+    >>>         math.factorial(100)
+    Timing for: 200 loops, best of 3
+    Timed for: 200 loops, best of 3
+        body took: 331.840 µs
+        time per loop: best=1.569 µs, mean=1.615 ± 0.0 µs
+
+    >>> # xdoctest: +SKIP
+    >>> # In Contrast, timeit is similar, but not having to worry about setup
+    >>> # and inputing the program as a string, is nice.
+    >>> import timeit
+    >>> timeit.timeit(stmt='math.factorial(100)', setup='import math')
+    1.12695...
+
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> #
+    >>> # The Timer class can also be useful for quick checks
+    >>> #
+    >>> import math
+    >>> timer = Timer('Timer demo!', verbose=1)
+    >>> x = 100000  # the input for example output
+    >>> x = 10      # the input for test speed considerations
+    >>> with timer:
+    >>>     math.factorial(x)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1959s
+"""
 import time
 import sys
 import itertools as it
@@ -21,11 +52,8 @@ from collections import defaultdict, OrderedDict
 __all__ = ['Timer', 'Timerit']
 
 
-if sys.version_info.major == 2:  # nocover
-    default_time = time.clock if sys.platform.startswith('win32') else time.time
-else:
-    # TODO: If sys.version >= 3.7, then use time.perf_counter_ns
-    default_time = time.perf_counter
+# TODO: If sys.version >= 3.7, then use time.perf_counter_ns
+default_time = time.perf_counter
 
 
 class Timer(object):
@@ -50,7 +78,7 @@ class Timer(object):
         >>> import math
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
-        >>>     math.factorial(10000)
+        >>>     math.factorial(10)
         >>> assert timer.elapsed > 0
         tic('Timer test!')
         ...toc('Timer test!')=...
@@ -131,13 +159,13 @@ class Timerit(object):
 
     Example:
         >>> import math
-        >>> num = 15
+        >>> num = 3
         >>> t1 = Timerit(num, label='factorial', verbose=1)
         >>> for timer in t1:
         >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
         >>>         # <write code to time here> for example...
-        >>>         math.factorial(10000)
+        >>>         math.factorial(100)
         Timed best=..., mean=... for factorial
         >>> # <you can now access Timerit attributes>
         >>> assert t1.total_time > 0
@@ -195,7 +223,7 @@ class Timerit(object):
         clears all measurements, allowing the object to be reused
 
         Args:
-            label (str, optional) : change the label if specified
+            label (str | None) : change the label if specified
             measures (bool, default=False): if True reset measures
 
         Example:
@@ -223,8 +251,9 @@ class Timerit(object):
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            self (Timerit): Use `min`, or `mean` to get a scalar. Use
-                `print` to output a report to stdout.
+            'Timerit': self :
+                Use `min`, or `mean` to get a scalar. Use `print` to output a
+                report to stdout.
 
         Example:
             >>> import math
@@ -245,7 +274,7 @@ class Timerit(object):
         # Create a foreground and background timer
         bg_timer = self._timer_cls(verbose=0)   # (ideally this is unused)
         fg_timer = self._timer_cls(verbose=0)   # (used directly by user)
-        # give the forground timer a reference to this object, so the user can
+        # give the foreground timer a reference to this object, so the user can
         # access this object while still constructing the Timerit object inline
         # with the for loop.
         fg_timer.parent = self
@@ -271,7 +300,8 @@ class Timerit(object):
                 self.n_loops += 1
         # Timing complete, print results
         if len(self.times) != self.num:
-            raise AssertionError('incorrectly recorded times')
+            raise AssertionError(
+                'incorrectly recorded times, need to reset timerit object')
 
         self._record_measurement()
 
@@ -595,7 +625,7 @@ def _choose_unit(value, unit=None, asciimode=None):
 
 def _trychar(char, fallback, asciimode=None):  # nocover
     """
-    Logic from IPython timeit to handle terminals that cant show mu
+    Logic from IPython timeit to handle terminals that can't show mu
 
     Args:
         char (str): character, typically unicode, to try to use

@@ -13,19 +13,17 @@ workflows:
   version: 2
   test:
     jobs:
+      - test-full-3.10
+      - test-full-3.9
       - test-full-3.8
       - test-full-3.7
       - test-full-3.6
-      - test-full-3.5
-      - test-full-3.4
-      - test-full-2.7
 
+      - test-minimal-3.10
+      - test-minimal-3.9
       - test-minimal-3.8
       - test-minimal-3.7
       - test-minimal-3.6
-      - test-minimal-3.5
-      - test-minimal-3.4
-      - test-minimal-2.7
 
       - test-minimal-pypy3
       - test-full-pypy3
@@ -115,6 +113,18 @@ jobs:
   #
   # All we need to do is change the base docker image so python is the
   # version we want we can reuse everything else from the template
+  #
+  test-full-3.10:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.10
+    working_directory: ~/repo-full-310
+
+  test-full-3.9:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.9
+    working_directory: ~/repo-full-39
   
   test-full-3.8:
     <<: *test-full-template
@@ -140,19 +150,18 @@ jobs:
       - image: circleci/python:3.5
     working_directory: ~/repo-full-35
 
-  test-full-3.4:
-    <<: *test-full-template
-    docker:
-      - image: circleci/python:3.4
-    working_directory: ~/repo-full-34
-
-  test-full-2.7:
-    <<: *test-full-template
-    docker:
-      - image: circleci/python:2.7
-    working_directory: ~/repo-full-27
-
   # ------------
+  test-minimal-3.10:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.10
+    working_directory: ~/repo-minimal-310
+
+  test-minimal-3.9:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.9
+    working_directory: ~/repo-minimal-39
   
   test-minimal-3.8:
     <<: *test-minimal-template
@@ -177,18 +186,6 @@ jobs:
     docker:
       - image: circleci/python:3.5
     working_directory: ~/repo-minimal-35
-
-  test-minimal-3.4:
-    <<: *test-minimal-template
-    docker:
-      - image: circleci/python:3.4
-    working_directory: ~/repo-minimal-34
-
-  test-minimal-2.7:
-    <<: *test-minimal-template
-    docker:
-      - image: circleci/python:2.7
-    working_directory: ~/repo-minimal-27
 
   # --- pypy ----
 

@@ -34,9 +34,7 @@ Mkinit:
     mkinit timerit --nomods --relative
     # TODO: get sphinx to ignore these mkinit-blocks
 """
-from __future__ import unicode_literals
-
-__version__ = '0.3.0'
+__version__ = '1.0.0'
 
 from .core import (Timer, Timerit,)
 __all__ = ['Timer', 'Timerit']

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from xdoctest.utils import CaptureStdout
 from timerit import Timer, Timerit
 from functools import partial

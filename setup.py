@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from os.path import exists
 from os.path import sys
 from setuptools import setup
@@ -188,14 +187,19 @@ if __name__ == '__main__':
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-            'Development Status :: 4 - Beta',
+            'Development Status :: 5 - Production/Stable',
             'Intended Audience :: Developers',
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: Utilities',
             # This should be interpreted as Apache License v2.0
             'License :: OSI Approved :: Apache Software License',
             # Supported Python versions
-            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
+            # Supported Python versions
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
         ],
     )

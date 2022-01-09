@@ -1,11 +1,12 @@
-|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
+|CircleCI| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
 
 Timerit
 =======
 
 A powerful multiline alternative to Python's builtin ``timeit`` module.
 
-Docs are being written at https://timerit.readthedocs.io/en/latest/
+Docs are published at https://timerit.readthedocs.io/en/latest/ but this README
+and code comments contain a walkthrough.
 
 Description
 -----------
@@ -13,9 +14,6 @@ Description
 Easily do robust timings on existing blocks of code by simply indenting
 them. There is no need to refactor into a string representation or
 convert to a single line.
-
-This is a standalone version of a utility distributed with 
-`ubelt <https://github.com/Erotemic/ubelt>`__.
 
 Installation
 ------------
