@@ -29,12 +29,11 @@ a single line, but including more is trivial.
         time per loop: best=2.064 ms, mean=2.115 +- 0.05 ms
     t1.total_time = 0.4427177629695507
 
-
 Mkinit:
     mkinit timerit --nomods --relative
-    # TODO: get sphinx to ignore these mkinit-blocks
 """
 __version__ = '1.0.0'
 
 from .core import (Timer, Timerit,)
+
 __all__ = ['Timer', 'Timerit']

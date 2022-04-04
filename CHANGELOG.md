@@ -7,7 +7,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Version 1.0.0] - Unreleased
 
+
+### Added
+* `robust_times` method
+
+### Changed
 * Removed Python 2.7, 3.4 and 3.5 support
+* Python 3.7+ now uses `perf_counter_ns` by default.
 
 
 ## [Version 0.3.0] - Unreleased
