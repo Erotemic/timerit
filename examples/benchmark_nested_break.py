@@ -71,7 +71,7 @@ def benchmark_nested_break():
         # 'n1': np.logspace(1, np.log2(100), 30, base=2).astype(int),
         # 'n2': np.logspace(1, np.log2(100), 30, base=2).astype(int),
         'size': np.logspace(1, np.log2(10000), 30, base=2).astype(int),
-        'input_style': ['range', 'list'],
+        'input_style': ['range', 'list', 'customized_iter'],
         # 'param_name': [param values],
     }
     xlabel = 'size'
@@ -101,6 +101,20 @@ def benchmark_nested_break():
         elif params['input_style'] == 'range':
             iter1 = range(n1)
             iter2 = range(n2)
+        elif params['input_style'] == 'customized_iter':
+            import random
+            def rando1():
+                rng1 = random.Random(0)
+                for _ in range(n1):
+                    yield rng1.randint(0, n2)
+
+            def rando2():
+                rng2 = random.Random(1)
+                for _ in range(n1):
+                    yield rng2.randint(0, n2)
+
+            iter1 = rando1()
+            iter2 = rando2()
         else:
             raise KeyError
         return {'iter1': iter1, 'iter2': iter2}
