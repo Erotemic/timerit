@@ -44,7 +44,7 @@ def benchmark_nested_break():
     method_lut = locals()  # can populate this some other way
 
     # Change params here to modify number of trials
-    ti = timerit.Timerit(100, bestof=10, verbose=1)
+    ti = timerit.Timerit(100000, bestof=100, verbose=1)
 
     # if True, record every trail run and show variance in seaborn
     # if False, use the standard timerit min/mean measures
@@ -192,11 +192,11 @@ def benchmark_nested_break():
         # Your variables may change
         ax = kwplot.figure(fnum=1, doclf=True).gca()
         sns.lineplot(data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw)
-        ax.set_title('Benchmark Name')
+        ax.set_title(f'Benchmark Nested Breaks: #Trials {ti.num}, bestof {ti.bestof}')
         ax.set_xlabel(f'{xlabel}')
         ax.set_ylabel('Time')
         # ax.set_xscale('log')
-        # ax.set_yscale('log')
+        ax.set_yscale('log')
 
         try:
             __IPYTHON__
