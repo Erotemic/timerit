@@ -11,12 +11,16 @@ class HackedTime(object):
     Args:
         inc (float): number of seconds to ellapse between each call
     """
-    def __init__(self, inc=1.0, noise=0):
+    def __init__(self, inc=1.0, noise=0, rng=None):
+        if rng is None:
+            self.rng = random
+        else:
+            self.rng = random.Random(rng)
         self.time = 1000000000.000
         self.inc = inc
         self.noise = noise
     def __call__(self):
-        self.time += abs(self.inc + random.normalvariate(0, self.noise))
+        self.time += abs(self.inc + self.rng.normalvariate(0, self.noise))
         return self.time
 
 
@@ -25,7 +29,8 @@ class HackedTimer(Timer):
     def __init__(self, *args, **kw):
         inc = kw.pop('inc', 42)
         super(HackedTimer, self).__init__(*args, **kw)
-        self._time = HackedTime(inc=inc)
+        self._time = HackedTime(inc=inc, rng=593513329100)
+        self._to_seconds = 1
         self.inc = inc
 
 
@@ -33,8 +38,8 @@ class HackedTimerit(Timerit):
     """ Creates a Timerit object where timings are known for testing """
     def __init__(self, *args, **kw):
         inc = kw.pop('inc', 42)
+        kw['timer_cls'] = partial(HackedTimer, inc=inc)
         super(HackedTimerit, self).__init__(*args, **kw)
-        self._timer_cls = partial(HackedTimer, inc=inc)
         self.inc = inc
         self._asciimode = True  # a hacked timer will always return ascii
 
@@ -75,33 +80,29 @@ def test_timerit_verbose():
 
 def test_hacked_timerit_verbose():
     import textwrap
-    with CaptureStdout() as cap:
+    with CaptureStdout(supress=False) as cap:
         HackedTimerit(3, label='foo', verbose=0).call(lambda: None)
-    print(cap.text)
     assert cap.text.strip() == textwrap.dedent(
         '''
         ''').strip()
 
-    with CaptureStdout() as cap:
+    with CaptureStdout(supress=False) as cap:
         HackedTimerit(3, label='foo', verbose=1).call(lambda: None)
-    print(cap.text)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timed best=42.000 s, mean=42.000 +- 0.0 s for foo
         ''').strip()
 
-    with CaptureStdout() as cap:
+    with CaptureStdout(supress=False) as cap:
         HackedTimerit(3, label='foo', verbose=2).call(lambda: None)
-    print(cap.text)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timed foo for: 3 loops, best of 3
             time per loop: best=42.000 s, mean=42.000 +- 0.0 s
         ''').strip()
 
-    with CaptureStdout() as cap:
+    with CaptureStdout(supress=False) as cap:
         HackedTimerit(3, label='foo', verbose=3).call(lambda: None)
-    print(cap.text)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timing foo for: 3 loops, best of 3
@@ -193,15 +194,22 @@ def test_timer_context():
     manual_time = ManualTime()
 
     class ManualTimer(Timer):
-        _default_time = manual_time
+        _default_counter = manual_time
 
     class ManualTimerit(Timerit):
         _default_timer_cls = ManualTimer
         _default_asciimode = True
 
     # Test that manual timer works as expected
+    t = ManualTimer()
+    print('t.elapsed = {!r}'.format(t.elapsed))
+    with t:
+        pass
+    print('t.elapsed = {!r}'.format(t.elapsed))
+    assert t.elapsed == 0
     with ManualTimer() as t:
         pass
+    print('t.elapsed = {!r}'.format(t.elapsed))
     assert t.elapsed == 0
     with ManualTimer() as t:
         manual_time.tic(n=3)

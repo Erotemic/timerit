@@ -9,7 +9,7 @@ a with statement.
 
 
 Example:
-    >>> # xdoctest: +IGNORE_WANT
+    >>> # xdoc: +IGNORE_WANT
     >>> #
     >>> # The Timerit class allows for robust benchmarking based
     >>> # It can be used in normal scripts by simply adjusting the indentation
@@ -22,7 +22,7 @@ Example:
         body took: 331.840 µs
         time per loop: best=1.569 µs, mean=1.615 ± 0.0 µs
 
-    >>> # xdoctest: +SKIP
+    >>> # xdoc: +SKIP
     >>> # In Contrast, timeit is similar, but not having to worry about setup
     >>> # and inputing the program as a string, is nice.
     >>> import timeit
@@ -31,7 +31,7 @@ Example:
 
 
 Example:
-    >>> # xdoctest: +IGNORE_WANT
+    >>> # xdoc: +IGNORE_WANT
     >>> #
     >>> # The Timer class can also be useful for quick checks
     >>> #
@@ -133,6 +133,8 @@ class Timer(object):
         if isinstance(counter, str):
             if counter == 'auto':
                 counter = self._default_counter
+
+        if isinstance(counter, str):
             if counter == 'perf_counter_ns':
                 _time = time.perf_counter_ns
                 _to_seconds = 1e-9
@@ -141,6 +143,10 @@ class Timer(object):
                 _to_seconds = 1
             else:
                 raise KeyError(counter)
+        else:
+            _time = counter
+            _to_seconds = 1
+
         self._to_seconds = _to_seconds
         self._time = _time
 
@@ -273,7 +279,7 @@ class Timerit(object):
     _default_precision_type = 'f'  # could also be reasonably be 'g' or ''
 
     def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None,
-                 disable_gc=True, counter='perf_counter'):
+                 disable_gc=True, timer_cls=None):
         if verbose is None:
             verbose = bool(label)
 
@@ -294,7 +300,7 @@ class Timerit(object):
         self.measures = defaultdict(dict)
 
         # Internal variables
-        self._timer_cls = self._default_timer_cls
+        self._timer_cls = self._default_timer_cls if timer_cls is None else timer_cls
         self._asciimode = self._default_asciimode
         self._precision = self._default_precision
         self._precision_type = self._default_precision_type
@@ -397,9 +403,9 @@ class Timerit(object):
                 bg_time = bg_timer.toc()
                 # Check if the fg_timer object was used, but fallback on bg_timer
                 if fg_timer.elapsed >= 0:
-                    block_time = fg_timer.elapsed  # higher precision
+                    block_time = fg_timer.elapsed  # higher precision?
                 else:
-                    block_time = bg_time  # low precision
+                    block_time = bg_time  # low precision?
                 # record timings
                 self.times.append(block_time)
                 self.total_time += block_time
@@ -451,8 +457,24 @@ class Timerit(object):
             >>> _ = ti.reset('a').call(math.factorial, 5)
             >>> _ = ti.reset('b').call(math.factorial, 10)
             >>> _ = ti.reset('c').call(math.factorial, 20)
-            >>> ti.rankings
-            >>> ti.consistency
+            >>> _ = ti.reset('d').call(math.factorial, 1000)
+            >>> _ = ti.reset('e').call(math.factorial, 100000)
+            >>> # xdoctest: +REQUIRES(module:ubelt)
+            >>> # xdoctest: +IGNORE_WANT
+            >>> import ubelt as ub
+            >>> print('ti.rankings = {}'.format(ub.repr2(ti.rankings, nl=1, precision=8)))
+            >>> print('ti.consistency = {}'.format(ub.repr2(ti.consistency, nl=1, precision=8)))
+            >>> print(ti.summary())
+            ti.rankings = {
+                'mean': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+                'mean+std': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+                'mean-std': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+                'min': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+            }
+            ti.consistency = 1.00000000
+            mul is 56.64% faster than sum
+            pow is 19.22% faster than mul
+
         """
         rankings = {
             k: OrderedDict(sorted(d.items(), key=lambda kv: kv[1]))
@@ -612,6 +634,22 @@ class Timerit(object):
         return line
 
     def summary(self):
+        """
+        Summarize a timerit session
+
+        Example:
+            >>> import math
+            >>> from timerit import Timerit
+            >>> ti = Timerit(num=1)
+            >>> x = 32
+            >>> ti.reset('mul').call(lambda x: x * x, x)
+            >>> ti.reset('pow').call(lambda x: x ** 2, x)
+            >>> ti.reset('sum').call(lambda x: sum(x for _ in range(int(x))), x)
+            >>> print(ti.summary())  # xdoc: +IGNORE_WANT
+            mul is 48.69% faster than sum
+            pow is 36.45% faster than mul
+
+        """
         from timerit.relative import Relative
         lines = []
         # TODO: hook up comparisons in an intuitive manner
@@ -641,23 +679,10 @@ class Timerit(object):
 
         Example:
             >>> import math
-            >>> from timerit import Timer
+            >>> from timerit import Timerit
             >>> ti = Timerit(num=1).call(math.factorial, 5)
             >>> print(ti.report(verbose=1))
             Timed best=...s, mean=...s
-
-            >>> import math
-            >>> import timerit
-            >>> it = timerit.Timerit(num=100)
-            >>> ti.reset('method1').call(math.factorial, 100)
-            >>> ti.reset('method2').call(math.factorial, 10)
-            >>> ti.reset('method3').call(math.factorial, 120)
-
-            self = ti
-            print('ti.measures = {}'.format(ub.repr2(ti.measures, nl=1, precision=5)))
-
-            >>> math.Timerit(num=10).call(math.factorial, 50).print(verbose=1)
-
         """
         # ti = self
         # print(ti.report())
