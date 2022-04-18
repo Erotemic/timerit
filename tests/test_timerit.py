@@ -80,20 +80,20 @@ def test_timerit_verbose():
 
 def test_hacked_timerit_verbose():
     import textwrap
-    with CaptureStdout(supress=False) as cap:
+    with CaptureStdout(suppress=False) as cap:
         HackedTimerit(3, label='foo', verbose=0).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         ''').strip()
 
-    with CaptureStdout(supress=False) as cap:
+    with CaptureStdout(suppress=False) as cap:
         HackedTimerit(3, label='foo', verbose=1).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timed best=42.000 s, mean=42.000 +- 0.0 s for foo
         ''').strip()
 
-    with CaptureStdout(supress=False) as cap:
+    with CaptureStdout(suppress=False) as cap:
         HackedTimerit(3, label='foo', verbose=2).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
@@ -101,7 +101,7 @@ def test_hacked_timerit_verbose():
             time per loop: best=42.000 s, mean=42.000 +- 0.0 s
         ''').strip()
 
-    with CaptureStdout(supress=False) as cap:
+    with CaptureStdout(suppress=False) as cap:
         HackedTimerit(3, label='foo', verbose=3).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''

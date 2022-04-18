@@ -54,7 +54,10 @@ __all__ = ['Timer', 'Timerit']
 
 # If sys.version >= 3.7, then use time.perf_counter_ns
 if sys.version_info[0:2] >= (3, 7):
-    default_counter = 'perf_counter_ns'
+    if hasattr(time, 'perf_counter_ns'):
+        default_counter = 'perf_counter_ns'
+    else:
+        default_counter = 'perf_counter'
 else:
     default_counter = 'perf_counter'
 
