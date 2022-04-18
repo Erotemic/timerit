@@ -136,7 +136,7 @@ def test_timer_error():
     try:
         with Timer() as timer:
             raise Exception()
-    except Exception as ex:
+    except Exception:
         pass
     assert timer.elapsed > 0
 
