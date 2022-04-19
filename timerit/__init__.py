@@ -23,6 +23,7 @@ a single line, but including more is trivial.
     >>>     setup_vars = 10000
     >>>     with timer:
     >>>         math.factorial(setup_vars)
+    >>> # xdoctest: +IGNORE_WANT
     >>> print('t1.total_time = %r' % (t1.total_time,))
     Timing for 200 loops
     Timed for: 200 loops, best of 3
