@@ -1,4 +1,7 @@
-|CircleCI| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
+
+|GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
+
+.. .. |CircleCI| 
 
 Timerit
 =======
@@ -206,3 +209,5 @@ Benchmark Recipe
     :target: http://timerit.readthedocs.io/en/latest/
 .. |CodeQuality| image:: https://api.codacy.com/project/badge/Grade/fdcedca723f24ec4be9c7067d91cb43b 
     :target: https://www.codacy.com/manual/Erotemic/timerit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/timerit&amp;utm_campaign=Badge_Grade
+.. |GithubActions| image:: https://github.com/Erotemic/timerit/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/timerit/actions?query=branch%3Amain
