@@ -1,5 +1,5 @@
 
-|GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
+|GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| 
 
 .. .. |CircleCI| 
 
