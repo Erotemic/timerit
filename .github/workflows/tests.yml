@@ -67,7 +67,7 @@ jobs:
       run: |
         pwd
         ls -al
-        python -m pip install -r requirements/optional.txt
+        python -m pip install -r requirements.txt
         # Run the tests
         # Get path to installed package
         MOD_DPATH=$(python -c "import timerit, os; print(os.path.dirname(timerit.__file__))")
