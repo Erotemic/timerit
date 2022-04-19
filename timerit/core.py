@@ -111,11 +111,6 @@ class Timer(object):
         >>> print(timer1.toc())
         >>> print(timer1._raw_toc())
         >>> print(timer1._raw_toc())
-        >>> timer2 = timerit.Timer(counter='perf_counter_ns').tic()
-        >>> print(timer2.toc())
-        >>> print(timer2.toc())
-        >>> print(timer2._raw_toc())
-        >>> print(timer2._raw_toc())
     """
 
     _default_counter = default_counter
