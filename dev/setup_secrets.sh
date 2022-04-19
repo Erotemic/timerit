@@ -102,7 +102,7 @@ GITLAB ACTION INSTRUCTIONS
 Relevant CI Secret Locations
 ============================
 
-https://github.com/pyutils/line_profiler/settings/secrets/actions
+https://github.com/Erotemic/timerit/settings/secrets/actions
 
 https://app.circleci.com/settings/project/github/pyutils/line_profiler/environment-variables?return-to=https%3A%2F%2Fapp.circleci.com%2Fpipelines%2Fgithub%2Fpyutils%2Fline_profiler
 '

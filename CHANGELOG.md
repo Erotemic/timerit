@@ -5,8 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Version 1.0.0] - Unreleased
-
+## [Version 1.0.0] - Released 2022-04-18
 
 ### Added
 * `robust_times` method
@@ -18,14 +17,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Python 3.7+ now uses `perf_counter_ns` by default if available
 
 
-## [Version 0.3.0] - Unreleased
+## [Version 0.3.0] - Released 2019-12-29
 
 ### Added
 * Add rankings and consistency properties
 * Timerit now remembers results from previous runs
 
 
-## [Version 0.1.1] 
+## [Version 0.2.1] - Released 2019-03-03
+
+
+## [Version 0.1.1]
 
 ### Added
 * added `Timerit.reset`
@@ -34,7 +36,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Tweaked precision formatting in reports
 
 
-## [Version 0.1.0] 
+## [Version 0.1.0] - Released 2018-07-06
 
 ### Added
 * added `Timerit.reset`
@@ -55,7 +57,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Add internals to force ascii chars for tests
 
 
-## [Version 0.0.1] 
+## [Version 0.0.1] - Released 2018-05-27 
 
 ### Added
 * Initial port from ubelt
