@@ -174,6 +174,7 @@ if __name__ == '__main__':
         author='Jon Crall',
         description='A powerful multiline alternative to timeit',
         long_description=parse_description(),
+        long_description_content_type='text/x-rst',
         install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
             'all': parse_requirements('requirements.txt'),
@@ -184,6 +185,7 @@ if __name__ == '__main__':
         url='https://github.com/Erotemic/timerit',
         license='Apache 2',
         packages=['timerit'],
+        python_requires='>=3.6',
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
