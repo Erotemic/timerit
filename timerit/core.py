@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
 """
-Timerit exists here as a standalone module. The ubelt library also contains a
-copy.
-
 First, :class:`Timer` is a context manager that times a block of indented
 code. Also has `tic` and `toc` methods for a more matlab like feel.
 
@@ -10,9 +6,44 @@ Next, :class:`Timerit` is an alternative to the builtin timeit module. I think
 its better at least, maybe Tim Peters can show me otherwise. Perhaps there's a
 reason it has to work on strings and can't be placed around existing code like
 a with statement.
-"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+Example:
+    >>> # xdoc: +IGNORE_WANT
+    >>> #
+    >>> # The Timerit class allows for robust benchmarking based
+    >>> # It can be used in normal scripts by simply adjusting the indentation
+    >>> import math
+    >>> for timer in Timerit(num=12, verbose=3):
+    >>>     with timer:
+    >>>         math.factorial(100)
+    Timing for: 200 loops, best of 3
+    Timed for: 200 loops, best of 3
+        body took: 331.840 µs
+        time per loop: best=1.569 µs, mean=1.615 ± 0.0 µs
+
+    >>> # xdoc: +SKIP
+    >>> # In Contrast, timeit is similar, but not having to worry about setup
+    >>> # and inputing the program as a string, is nice.
+    >>> import timeit
+    >>> timeit.timeit(stmt='math.factorial(100)', setup='import math')
+    1.12695...
+
+
+Example:
+    >>> # xdoc: +IGNORE_WANT
+    >>> #
+    >>> # The Timer class can also be useful for quick checks
+    >>> #
+    >>> import math
+    >>> timer = Timer('Timer demo!', verbose=1)
+    >>> x = 100000  # the input for example output
+    >>> x = 10      # the input for test speed considerations
+    >>> with timer:
+    >>>     math.factorial(x)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1959s
+"""
 import time
 import sys
 import itertools as it
@@ -21,11 +52,14 @@ from collections import defaultdict, OrderedDict
 __all__ = ['Timer', 'Timerit']
 
 
-if sys.version_info.major == 2:  # nocover
-    default_time = time.clock if sys.platform.startswith('win32') else time.time
+# If sys.version >= 3.7, then use time.perf_counter_ns
+if sys.version_info[0:2] >= (3, 7):
+    if hasattr(time, 'perf_counter_ns'):
+        default_counter = 'perf_counter_ns'
+    else:
+        default_counter = 'perf_counter'
 else:
-    # TODO: If sys.version >= 3.7, then use time.perf_counter_ns
-    default_time = time.perf_counter
+    default_counter = 'perf_counter'
 
 
 class Timer(object):
@@ -34,65 +68,126 @@ class Timer(object):
     with-statement context manager, or using the tic/toc api.
 
     Args:
-        label (str, default=''):
-            identifier for printing
-        verbose (int, default=None):
-            verbosity flag, defaults to True if label is given
-        newline (bool, default=True):
-            if False and verbose, print tic and toc on the same line
+        label (str):
+            Identifier for printing. Default is ''.
+        verbose (int):
+            Verbosity flag. Default is 1 if label is given, otherwise 0.
+        newline (bool):
+            if False and verbose, print tic and toc on the same line.
+            Defaults to True.
+        counter (str):
+            Can be 'auto', 'perf_counter', or 'perf_counter_ns' (if Python
+            3.7+). Defaults to auto.
 
     Attributes:
-        elapsed (float): number of seconds measured by the context manager
-        tstart (float): time of last `tic` reported by `self._time()`
+        elapsed (float): number of seconds measured by the context manager.
+
+        tstart (float): time of last `tic` in seconds.
 
     Example:
         >>> # Create and start the timer using the context manager
         >>> import math
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
-        >>>     math.factorial(10000)
+        >>>     math.factorial(10)
         >>> assert timer.elapsed > 0
         tic('Timer test!')
         ...toc('Timer test!')=...
 
     Example:
         >>> # Create and start the timer using the tic/toc interface
-        >>> timer = Timer().tic()
+        >>> import timerit
+        >>> timer = timerit.Timer().tic()
         >>> elapsed1 = timer.toc()
         >>> elapsed2 = timer.toc()
         >>> elapsed3 = timer.toc()
         >>> assert elapsed1 <= elapsed2
         >>> assert elapsed2 <= elapsed3
+
+    Example:
+        >>> import timerit
+        >>> timer1 = timerit.Timer(counter='perf_counter').tic()
+        >>> print(timer1.toc())
+        >>> print(timer1.toc())
+        >>> print(timer1._raw_toc())
+        >>> print(timer1._raw_toc())
     """
 
-    _default_time = default_time
+    _default_counter = default_counter
 
-    def __init__(self, label='', verbose=None, newline=True):
+    def __init__(self, label='', verbose=None, newline=True, counter='auto'):
         if verbose is None:
             verbose = bool(label)
         self.label = label
         self.verbose = verbose
         self.newline = newline
-        self.tstart = -1
-        self.elapsed = -1
+        # self.tstart = -1
+        # self.elapsed = -1
+        self._raw_elapsed = -1
+        self._raw_tstart = -1
         self.write = sys.stdout.write
         self.flush = sys.stdout.flush
-        self._time = self._default_time
+
+        if isinstance(counter, str):
+            if counter == 'auto':
+                counter = self._default_counter
+
+        if isinstance(counter, str):
+            if counter == 'perf_counter_ns':
+                _time = time.perf_counter_ns
+                _to_seconds = 1e-9
+            elif counter == 'perf_counter':
+                _time = time.perf_counter
+                _to_seconds = 1
+            else:
+                raise KeyError(counter)
+        else:
+            _time = counter
+            _to_seconds = 1
+
+        self._to_seconds = _to_seconds
+        self._time = _time
+
+    @property
+    def tstart(self):
+        return self._raw_tstart * self._to_seconds
+
+    @property
+    def elapsed(self):
+        return self._raw_elapsed * self._to_seconds
+
+    def _raw_tic(self):
+        self._raw_tstart = self._time()
+
+    def _raw_toc(self):
+        self._raw_elapsed = raw_elapsed = self._time() - self._raw_tstart
+        return raw_elapsed
 
     def tic(self):
-        """ starts the timer """
+        """
+        starts the timer
+
+        Returns:
+            Timer: self
+        """
         if self.verbose:
             self.flush()
             self.write('\ntic(%r)' % self.label)
             if self.newline:
                 self.write('\n')
             self.flush()
-        self.tstart = self._time()
+        self._raw_tic()
         return self
 
     def toc(self):
-        """ stops the timer """
-        elapsed = self._time() - self.tstart
+        """
+        stops the timer
+
+        Returns:
+            float: amount of time that passed in seconds.
+        """
+        self._raw_toc()
+        elapsed = self.elapsed
         if self.verbose:
             self.write('...toc(%r)=%.4fs\n' % (self.label, elapsed))
             self.flush()
@@ -103,7 +198,7 @@ class Timer(object):
         return self
 
     def __exit__(self, ex_type, ex_value, trace):
-        self.elapsed = self.toc()
+        self.toc()
         if trace is not None:
             return False
 
@@ -119,11 +214,23 @@ class Timerit(object):
     little magic).
 
     Args:
-        num (int, default=1): number of times to run the loop
-        label (str, default=None): identifier for printing
-        bestof (int, default=3): takes the max over this number of trials
-        unit (str): what units time is reported in
-        verbose (int): verbosity flag, defaults to True if label is given
+        num (int, default=1):
+            number of times to run the loop
+
+        label (str):
+            identifier for printing. Defaults to None
+
+        bestof (int):
+            Takes the max over this number of trials. Defaults to 3.
+
+        unit (str):
+            what units time is reported in. Defaults to None (which means auto)
+
+        verbose (int):
+            verbosity flag, defaults to True if label is given
+
+        disable_gc (bool): if True, disables the garbage collector while
+            timing, defaults to True.
 
     Attributes:
         measures - labeled measurements taken by this object
@@ -131,13 +238,14 @@ class Timerit(object):
 
     Example:
         >>> import math
-        >>> num = 15
-        >>> t1 = Timerit(num, label='factorial', verbose=1)
+        >>> import timerit
+        >>> num = 3
+        >>> t1 = timerit.Timerit(num, label='factorial', verbose=1)
         >>> for timer in t1:
         >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
         >>>         # <write code to time here> for example...
-        >>>         math.factorial(10000)
+        >>>         math.factorial(100)
         Timed best=..., mean=... for factorial
         >>> # <you can now access Timerit attributes>
         >>> assert t1.total_time > 0
@@ -147,15 +255,16 @@ class Timerit(object):
     Example:
         >>> # xdoc: +IGNORE_WANT
         >>> import math
+        >>> import timerit
         >>> num = 10
         >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
-        >>> for _ in Timerit(num, 'concise', verbose=2):
+        >>> for _ in timerit.Timerit(num, 'concise', verbose=2):
         >>>     math.factorial(10000)
         Timed concise for: 10 loops, best of 3
             time per loop: best=4.954 ms, mean=4.972 ± 0.018 ms
         >>> # Using the timer object results in the most precise timings
-        >>> for timer in Timerit(num, 'precise', verbose=3):
+        >>> for timer in timerit.Timerit(num, 'precise', verbose=3):
         >>>     with timer: math.factorial(10000)
         Timing precise for: 15 loops, best of 3
         Timed precise for: 15 loops, best of 3
@@ -167,7 +276,8 @@ class Timerit(object):
     _default_precision = 3
     _default_precision_type = 'f'  # could also be reasonably be 'g' or ''
 
-    def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None):
+    def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None,
+                 disable_gc=True, timer_cls=None):
         if verbose is None:
             verbose = bool(label)
 
@@ -178,28 +288,44 @@ class Timerit(object):
         self.verbose = verbose
 
         self.times = []
-        self.n_loops = None
-        self.total_time = None
+        self.total_time = 0
 
-        # Keep track of measures
+        # self._raw_times = []
+        # self._raw_total = None
+        self.n_loops = None
+
+        # Keep track of measures, does not change on reset by default
         self.measures = defaultdict(dict)
 
         # Internal variables
-        self._timer_cls = self._default_timer_cls
+        self._timer_cls = self._default_timer_cls if timer_cls is None else timer_cls
         self._asciimode = self._default_asciimode
         self._precision = self._default_precision
         self._precision_type = self._default_precision_type
+
+        # Create a foreground and background timer
+        self._bg_timer = self._timer_cls(verbose=0)   # (ideally this is unused)
+        self._fg_timer = self._timer_cls(verbose=0)   # (used directly by user)
+        self._to_seconds = self._bg_timer._to_seconds
+        # give the foreground timer a reference to this object, so the user can
+        # access this object while still constructing the Timerit object inline
+        # with the for loop.
+        self._fg_timer.parent = self
 
     def reset(self, label=None, measures=False):
         """
         clears all measurements, allowing the object to be reused
 
         Args:
-            label (str, optional) : change the label if specified
+            label (str | None) : change the label if specified
             measures (bool, default=False): if True reset measures
+
+        Returns:
+            Timerit: self
 
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> ti = Timerit(num=10, unit='us', verbose=True)
             >>> _ = ti.reset(label='10!').call(math.factorial, 10)
             Timed best=...s, mean=...s for 10!
@@ -218,16 +344,33 @@ class Timerit(object):
         self.total_time = None
         return self
 
+    # @property
+    # def total_time(self):
+    #     if self._raw_total is None:
+    #         return None
+    #     return self._raw_total / self._to_seconds
+
+    # @property
+    # def times(self):
+    #     if self._raw_times is None:
+    #         return None
+    #     return [t * self._to_seconds for t in self._raw_times]
+
     def call(self, func, *args, **kwargs):
         """
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            self (Timerit): Use `min`, or `mean` to get a scalar. Use
-                `print` to output a report to stdout.
+            'Timerit': self :
+                Use `min`, or `mean` to get a scalar. Use `print` to output a
+                report to stdout.
+
+        Returns:
+            Timerit: self
 
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> time = Timerit(num=10).call(math.factorial, 50).min()
             >>> assert time > 0
         """
@@ -242,15 +385,11 @@ class Timerit(object):
 
         self.n_loops = 0
         self.total_time = 0
-        # Create a foreground and background timer
-        bg_timer = self._timer_cls(verbose=0)   # (ideally this is unused)
-        fg_timer = self._timer_cls(verbose=0)   # (used directly by user)
-        # give the forground timer a reference to this object, so the user can
-        # access this object while still constructing the Timerit object inline
-        # with the for loop.
-        fg_timer.parent = self
+
+        bg_timer = self._bg_timer
+        fg_timer = self._fg_timer
         # disable the garbage collector while timing
-        with _ToggleGC(False):
+        with _SetGCState(enable=False):
             # Core timing loop
             for _ in it.repeat(None, self.num):
                 # Start background timer (in case the user doesn't use fg_timer)
@@ -262,16 +401,17 @@ class Timerit(object):
                 bg_time = bg_timer.toc()
                 # Check if the fg_timer object was used, but fallback on bg_timer
                 if fg_timer.elapsed >= 0:
-                    block_time = fg_timer.elapsed  # higher precision
+                    block_time = fg_timer.elapsed  # higher precision?
                 else:
-                    block_time = bg_time  # low precision
+                    block_time = bg_time  # low precision?
                 # record timings
                 self.times.append(block_time)
                 self.total_time += block_time
                 self.n_loops += 1
         # Timing complete, print results
         if len(self.times) != self.num:
-            raise AssertionError('incorrectly recorded times')
+            raise AssertionError(
+                'incorrectly recorded times, need to reset timerit object')
 
         self._record_measurement()
 
@@ -289,19 +429,50 @@ class Timerit(object):
         measures['mean+std'][self.label] = self.mean() + self.std()
         return measures
 
+    def robust_times(self):
+        """
+        Returns a subset of `self.times` where outliers have been rejected.
+
+        Returns:
+            List[float]
+        """
+        chunk_iter = _chunks(self.times, self.bestof)
+        times = list(map(min, chunk_iter))
+        return times
+
     @property
     def rankings(self):
         """
         Orders each list of measurements by ascending time
 
+        Returns:
+            Dict[str, Dict[str, List[float]]]
+
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> ti = Timerit(num=1)
             >>> _ = ti.reset('a').call(math.factorial, 5)
             >>> _ = ti.reset('b').call(math.factorial, 10)
             >>> _ = ti.reset('c').call(math.factorial, 20)
-            >>> ti.rankings
-            >>> ti.consistency
+            >>> _ = ti.reset('d').call(math.factorial, 1000)
+            >>> _ = ti.reset('e').call(math.factorial, 100000)
+            >>> # xdoctest: +REQUIRES(module:ubelt)
+            >>> # xdoctest: +IGNORE_WANT
+            >>> import ubelt as ub
+            >>> print('ti.rankings = {}'.format(ub.repr2(ti.rankings, nl=1, precision=8)))
+            >>> print('ti.consistency = {}'.format(ub.repr2(ti.consistency, nl=1, precision=8)))
+            >>> print(ti.summary())
+            ti.rankings = {
+                'mean': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+                'mean+std': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+                'mean-std': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+                'min': {'pow': 0.00000318, 'mul': 0.00000394, 'sum': 0.00000908},
+            }
+            ti.consistency = 1.00000000
+            mul is 56.64% faster than sum
+            pow is 19.22% faster than mul
+
         """
         rankings = {
             k: OrderedDict(sorted(d.items(), key=lambda kv: kv[1]))
@@ -354,6 +525,7 @@ class Timerit(object):
 
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> self = Timerit(num=10, verbose=0)
             >>> self.call(math.factorial, 50)
             >>> assert self.min() > 0
@@ -374,12 +546,12 @@ class Timerit(object):
 
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> self = Timerit(num=10, verbose=0)
             >>> self.call(math.factorial, 50)
             >>> assert self.mean() > 0
         """
-        chunk_iter = _chunks(self.times, self.bestof)
-        times = list(map(min, chunk_iter))
+        times = self.robust_times()
         mean = sum(times) / len(times)
         return mean
 
@@ -396,13 +568,13 @@ class Timerit(object):
 
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> self = Timerit(num=10, verbose=1)
             >>> self.call(math.factorial, 50)
             >>> assert self.std() >= 0
         """
         import math
-        chunk_iter = _chunks(self.times, self.bestof)
-        times = list(map(min, chunk_iter))
+        times = self.robust_times()
         mean = sum(times) / len(times)
         std = math.sqrt(sum((t - mean) ** 2 for t in times) / len(times))
         return std
@@ -413,6 +585,7 @@ class Timerit(object):
             str: human readable text
 
         Example:
+            >>> from timerit import Timer
             >>> self = Timerit(num=100, bestof=10, verbose=0)
             >>> self.call(lambda : sum(range(100)))
             >>> print(self._seconds_str())
@@ -442,7 +615,11 @@ class Timerit(object):
         """
         Text indicating what has been / is being done.
 
+        Returns:
+            str
+
         Example:
+            >>> from timerit import Timer
             >>> print(Timerit()._status_line(tense='past'))
             Timed for: 1 loops, best of 1
             >>> print(Timerit()._status_line(tense='present'))
@@ -453,6 +630,37 @@ class Timerit(object):
             label=self.label + ' ' if self.label else '',
             action=action, num=self.num, bestof=min(self.bestof, self.num))
         return line
+
+    def summary(self):
+        """
+        Summarize a timerit session
+
+        Example:
+            >>> import math
+            >>> from timerit import Timerit
+            >>> ti = Timerit(num=1)
+            >>> x = 32
+            >>> ti.reset('mul').call(lambda x: x * x, x)
+            >>> ti.reset('pow').call(lambda x: x ** 2, x)
+            >>> ti.reset('sum').call(lambda x: sum(x for _ in range(int(x))), x)
+            >>> print(ti.summary())  # xdoc: +IGNORE_WANT
+            mul is 48.69% faster than sum
+            pow is 36.45% faster than mul
+
+        """
+        from timerit.relative import Relative
+        lines = []
+        # TODO: hook up comparisons in an intuitive manner
+        method_to_mean = self.rankings['mean']
+        prev_key = None
+        prev_val = None
+        for key, val in list(method_to_mean.items())[::-1]:
+            if prev_key:
+                pcnt = Relative.percent_faster(val, prev_val)
+                lines.append('{} is {:0.2f}% faster than {}'.format(key, pcnt, prev_key))
+            prev_key = key
+            prev_val = val
+        return '\n'.join(lines)
 
     def report(self, verbose=1):
         """
@@ -469,10 +677,14 @@ class Timerit(object):
 
         Example:
             >>> import math
+            >>> from timerit import Timerit
             >>> ti = Timerit(num=1).call(math.factorial, 5)
             >>> print(ti.report(verbose=1))
             Timed best=...s, mean=...s
         """
+        # ti = self
+        # print(ti.report())
+
         lines = []
         if verbose >= 2:
             # use a multi-line format for high verbosity
@@ -491,6 +703,7 @@ class Timerit(object):
             if self.label:
                 line += ' for ' + self.label
             lines.append(line)
+
         text = '\n'.join(lines)
         return text
 
@@ -506,12 +719,13 @@ class Timerit(object):
 
         Example:
             >>> import math
+            >>> from timerit import Timer
             >>> Timerit(num=10).call(math.factorial, 50).print(verbose=1)
-            Timed best=...s, mean=...s
             >>> Timerit(num=10).call(math.factorial, 50).print(verbose=2)
+            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=3)
+            Timed best=...s, mean=...s
             Timed for: 10 loops, best of 3
                 time per loop: best=...s, mean=...s
-            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=3)
             Timed for: 10 loops, best of 3
                 body took: ...
                 time per loop: best=...s, mean=...s
@@ -519,28 +733,33 @@ class Timerit(object):
         print(self.report(verbose=verbose))
 
 
-class _ToggleGC(object):
+class _SetGCState(object):
     """
     Context manager to disable garbage collection.
+
+    Set the state and then returns to previous state after context exists.
+
+    Args:
+        enable (bool): set the gc to this state.
 
     Example:
         >>> import gc
         >>> prev = gc.isenabled()
-        >>> with _ToggleGC(False):
+        >>> with _SetGCState(False):
         >>>     assert not gc.isenabled()
-        >>>     with _ToggleGC(True):
+        >>>     with _SetGCState(True):
         >>>         assert gc.isenabled()
         >>>     assert not gc.isenabled()
         >>> assert gc.isenabled() == prev
     """
-    def __init__(self, flag):
-        self.flag = flag
+    def __init__(self, enable):
+        self.enable = enable
         self.prev = None
 
     def __enter__(self):
         import gc
         self.prev = gc.isenabled()
-        if self.flag:
+        if self.enable:
             gc.enable()
         else:
             gc.disable()
@@ -572,6 +791,7 @@ def _choose_unit(value, unit=None, asciimode=None):
             string suffix and conversion factor
 
     Example:
+        >>> from timerit.core import _choose_unit
         >>> assert _choose_unit(1.1, unit=None)[0] == 's'
         >>> assert _choose_unit(1e-2, unit=None)[0] == 'ms'
         >>> assert _choose_unit(1e-4, unit=None, asciimode=True)[0] == 'us'
@@ -595,7 +815,7 @@ def _choose_unit(value, unit=None, asciimode=None):
 
 def _trychar(char, fallback, asciimode=None):  # nocover
     """
-    Logic from IPython timeit to handle terminals that cant show mu
+    Logic from IPython timeit to handle terminals that can't show mu
 
     Args:
         char (str): character, typically unicode, to try to use
@@ -603,6 +823,7 @@ def _trychar(char, fallback, asciimode=None):  # nocover
         asciimode (bool): if True, always use fallback
 
     Example:
+        >>> from timerit.core import _trychar
         >>> char = _trychar('µs', 'us')
         >>> print('char = {}'.format(char))
         >>> assert _trychar('µs', 'us', asciimode=True) == 'us'

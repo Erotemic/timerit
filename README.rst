@@ -1,11 +1,15 @@
-|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
+
+|GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| |CodeQuality|
+
+.. .. |CircleCI| 
 
 Timerit
 =======
 
 A powerful multiline alternative to Python's builtin ``timeit`` module.
 
-Docs are being written at https://timerit.readthedocs.io/en/latest/
+Docs are published at https://timerit.readthedocs.io/en/latest/ but this README
+and code comments contain a walkthrough.
 
 Description
 -----------
@@ -13,9 +17,6 @@ Description
 Easily do robust timings on existing blocks of code by simply indenting
 them. There is no need to refactor into a string representation or
 convert to a single line.
-
-This is a standalone version of a utility distributed with 
-`ubelt <https://github.com/Erotemic/ubelt>`__.
 
 Installation
 ------------
@@ -85,6 +86,38 @@ With the Timerit version:
     Timed for: 1 loops, best of 1
         time per loop: best=4.828 µs, mean=4.828 ± 0.0 µs
 
+        
+How it works
+------------
+
+The timerit module defines ``timerit.Timerit``, which is an object that is
+iterable. It has an ``__iter__`` method that generates ``timerit.TimerTimer``
+objects, which are context managers. 
+
+    >>> import math
+    >>> from timerit import Timerit
+    >>> for timer in Timerit(num=200, verbose=2):
+    >>>     with timer:
+    >>>         math.factorial(10000)
+
+The timer context manager measures how much time the body of it takes by
+"tic"-ing ``__enter__`` and "toc"-ing on ``__exit__``. The underlying object
+has access to the context manager, so it is able to read its measurement. These
+measurements are stored and then we compute some statistics on them. Notably
+the minimum, mean, and standard-deviation of grouped (batched) running times.
+
+Unfortunately the syntax is one line and one indent bulker than I would prefer.
+However, a more consice version of the synax is available. 
+
+    >>> import math
+    >>> from timerit import Timerit
+    >>> for _ in Timerit(num=200, verbose=2):
+    >>>     math.factorial(10000)
+
+In this case the measurement is made in the `__iter__` method ``Timerit``
+object itself, which I believe contains slightly more overhead than the
+with-statement version. (I have seen evidence that this might actually be more
+accurate, but it needs further testing).
 
 Benchmark Recipe
 ----------------
@@ -159,7 +192,6 @@ Benchmark Recipe
         ax.set_xlabel('A better x-variable description')
         ax.set_ylabel('A better y-variable description')
 
-        
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/timerit/master.svg?label=Travis%20CI
    :target: https://travis-ci.org/Erotemic/timerit?branch=master
@@ -177,3 +209,5 @@ Benchmark Recipe
     :target: http://timerit.readthedocs.io/en/latest/
 .. |CodeQuality| image:: https://api.codacy.com/project/badge/Grade/fdcedca723f24ec4be9c7067d91cb43b 
     :target: https://www.codacy.com/manual/Erotemic/timerit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/timerit&amp;utm_campaign=Badge_Grade
+.. |GithubActions| image:: https://github.com/Erotemic/timerit/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/timerit/actions?query=branch%3Amain

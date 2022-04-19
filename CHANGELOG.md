@@ -5,6 +5,19 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Version 1.0.0] - Unreleased
+
+
+### Added
+* `robust_times` method
+* `summary` method
+* relative module
+
+### Changed
+* Removed Python 2.7, 3.4 and 3.5 support
+* Python 3.7+ now uses `perf_counter_ns` by default if available
+
+
 ## [Version 0.3.0] - Unreleased
 
 ### Added
