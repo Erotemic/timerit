@@ -51,7 +51,7 @@ The quick and dirty way just requires one indent.
         time per loop: best=2.469 ms, mean=2.49 ± 0.037 ms
 
 Use the loop variable as a context manager for more accurate timings or
-to incorporate an setup phase that is not timed. You can also access
+to incorporate a setup phase that is not timed. You can also access
 properties of the ``Timerit`` class to programmatically use results.
 
 .. code:: python
@@ -90,9 +90,10 @@ With the Timerit version:
 How it works
 ------------
 
-The timerit module defines ``timerit.Timerit``, which is an object that is
-iterable. It has an ``__iter__`` method that generates ``timerit.TimerTimer``
-objects, which are context managers. 
+The timerit module defines ``timerit.Timerit``, which is an iterable object
+that yields ``timerit.Timer`` context managers.
+
+.. code:: python
 
     >>> import math
     >>> from timerit import Timerit
@@ -101,23 +102,30 @@ objects, which are context managers.
     >>>         math.factorial(10000)
 
 The timer context manager measures how much time the body of it takes by
-"tic"-ing ``__enter__`` and "toc"-ing on ``__exit__``. The underlying object
-has access to the context manager, so it is able to read its measurement. These
-measurements are stored and then we compute some statistics on them. Notably
-the minimum, mean, and standard-deviation of grouped (batched) running times.
+"tic"-ing on ``__enter__`` and "toc"-ing on ``__exit__``. The parent
+``Timerit`` object has access to the context manager, so it is able to read its
+measurement. These measurements are stored and then we compute some statistics
+on them. Notably the minimum, mean, and standard-deviation of grouped (batched)
+running times.
 
-Unfortunately the syntax is one line and one indent bulker than I would prefer.
-However, a more consice version of the synax is available. 
+Using the with statement inside the loop is nice because you can run untimed
+setup code before you enter the context manager.
+
+In the case where no setup code is required, a more consice version of the
+synax is available. 
+
+.. code:: python
 
     >>> import math
     >>> from timerit import Timerit
     >>> for _ in Timerit(num=200, verbose=2):
     >>>     math.factorial(10000)
 
-In this case the measurement is made in the `__iter__` method ``Timerit``
-object itself, which I believe contains slightly more overhead than the
-with-statement version. (I have seen evidence that this might actually be more
-accurate, but it needs further testing).
+If the context manager is never called, the ``Timerit`` object detects this and
+the measurement is made in the ``__iter__`` method in the ``Timerit`` object
+itself. I believe that this consise method contains slightly more overhead than
+the with-statement version. (I have seen evidence that this might actually be
+more accurate, but it needs further testing).
 
 Benchmark Recipe
 ----------------
