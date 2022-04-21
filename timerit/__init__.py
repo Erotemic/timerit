@@ -6,10 +6,6 @@ Easily do robust timings on existing blocks of code by simply indenting
 them. There is no need to refactor into a string representation or
 convert to a single line.
 
-This is a standalone version of a utility distributed with
-`ubelt <https://github.com/Erotemic/ubelt>`__.
-
-
 Timerit makes it easy to benchmark complex blocks of code in either scripted or
 interactive sessions (e.g. Jupyter notebooks). The following example only times
 a single line, but including more is trivial.
