@@ -403,7 +403,7 @@ class Timerit(object):
                 if fg_timer.elapsed >= 0:
                     block_time = fg_timer.elapsed  # higher precision?
                 else:
-                    block_time = bg_time  # low precision?
+                    block_time = bg_time  # lower precision?
                 # record timings
                 self.times.append(block_time)
                 self.total_time += block_time
