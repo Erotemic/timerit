@@ -1,32 +1,37 @@
 
+"""
+This inspriation for this was to benchamrk a candidate speedup for
+~/code/networkx/networkx/generators/nonisomorphic_trees.py in _split_tree.
+Funny story. It turns out the most common param they used was nearly at the
+crossover point where all methods do about as well as each other.
+"""
+
 
 def benchmark_template():
     import ubelt as ub
     import pandas as pd
     import timerit
-    import inspect
+    import itertools as it
 
-    # Some bookkeeping needs to be done to build a dictionary that maps the
-    # method names to the functions themselves.
-    method_lut = {}
-    def register_method(func):
-        method_lut[func.__name__] = func
-        return func
+    # def f(x):
+    #     return x * 3 + 1
+    lut = {x: x * 3 + 1 for x in range(100000)}
+    f = lut.__getitem__
 
-    # Define the methods you want to benchmark. The arguments should be
-    # parameters that you want to vary in the test.
+    def method_plus(N):
+        [0] + [f(i) for i in range(N)]
 
-    @register_method
-    def method1(x, y, z):
-        ret = []
-        for i in range((x + y) * z):
-            ret.append(i)
-        return ret
+    def method_chain_gen(N):
+        list(it.chain([0], (f(i) for i in range(N))))
 
-    @register_method
-    def method2(x, y, z):
-        ret = [i for i in range((x + y) * z)]
-        return ret
+    def method_chain_map(N):
+        list(it.chain([0], map(f, range(N))))
+
+    def method_insert(N):
+        r = [f(i) for i in range(N)]
+        r.insert(0, 0)
+
+    method_lut = locals()  # can populate this some other way
 
     # Change params here to modify number of trials
     ti = timerit.Timerit(100, bestof=10, verbose=1)
@@ -37,22 +42,16 @@ def benchmark_template():
 
     # These are the parameters that we benchmark over
     basis = {
-        'method': list(method_lut),  # i.e. ['method1', 'method2']
-        'x': list(range(7)),
-        'y': [0, 100],
-        'z': [2, 3]
-        # 'param_name': [param values],
+        'method': ['method_plus', 'method_chain', 'method_chain_map', 'method_insert'],
+        'N': list(range(1, 100)),
     }
-    xlabel = 'x'
+    xlabel = 'N'
     # Set these to param labels that directly transfer to method kwargs
-    kw_labels = list(inspect.signature(ub.peek(method_lut.values())).parameters)
-    # i.e.
-    # kw_labels = ['x', 'y', 'z']
-    # Set these to empty lists if they are not used, removing dict items breaks
-    # the code.
+    kw_labels = ['N']
+    # Set these to empty lists if they are not used
     group_labels = {
-        'style': ['y'],
-        'size': ['z'],
+        'style': [],
+        'size': [],
     }
     group_labels['hue'] = list(
         (ub.oset(basis) - {xlabel}) - set.union(*map(set, group_labels.values())))
@@ -120,7 +119,7 @@ def benchmark_template():
     else:
         stats_data = data
 
-    USE_OPENSKILL = 1
+    USE_OPENSKILL = 0
     if USE_OPENSKILL:
         # Lets try a real ranking method
         # https://github.com/OpenDebates/openskill.py
@@ -179,7 +178,7 @@ def benchmark_template():
         ax.set_xlabel('Size (todo: A better x-variable description)')
         ax.set_ylabel('Time (todo: A better y-variable description)')
         # ax.set_xscale('log')
-        # ax.set_yscale('log')
+        ax.set_yscale('log')
 
         try:
             __IPYTHON__
