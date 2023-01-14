@@ -17,6 +17,8 @@ author = "Jon Crall"
 author_email = "erotemic@gmail.com"
 description = "A powerful multiline alternative to timeit"
 license = "Apache 2"
+typed = true
+url = 'https://github.com/Erotemic/timerit'
 dev_status = "stable"
 
 [tool.pytest.ini_options]
