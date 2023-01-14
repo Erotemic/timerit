@@ -1,2 +1,2 @@
-#!/bin/bash
-xdoctest timerit --style=google all
+#!/usr/bin/env bash
+xdoctest timerit --style=google all "$@"

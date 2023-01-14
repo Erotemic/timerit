@@ -185,7 +185,7 @@ def benchmark_nested_break():
     else:
         stats_data = data
 
-    USE_OPENSKILL = 1
+    USE_OPENSKILL = 0
     if USE_OPENSKILL:
         # Lets try a real ranking method
         # https://github.com/OpenDebates/openskill.py

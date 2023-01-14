@@ -4,6 +4,12 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Version 1.0.0] - Unreleased
+
+### Changed
+* Documentation improvements
+* Better type stubs
+
 
 ## [Version 1.0.0] - Released 2022-04-18
 

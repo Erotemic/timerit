@@ -21,19 +21,10 @@ convert to a single line.
 Installation
 ------------
 
-From pypi:
-^^^^^^^^^^
-
 ::
 
     pip install timerit
 
-From github:
-^^^^^^^^^^^^
-
-::
-
-    pip install git+https://github.com/Erotemic/timerit.git
 
 Examples
 --------
@@ -111,7 +102,7 @@ running times.
 Using the with statement inside the loop is nice because you can run untimed
 setup code before you enter the context manager.
 
-In the case where no setup code is required, a more consice version of the
+In the case where no setup code is required, a more concise version of the
 synax is available. 
 
 .. code:: python
@@ -123,7 +114,7 @@ synax is available.
 
 If the context manager is never called, the ``Timerit`` object detects this and
 the measurement is made in the ``__iter__`` method in the ``Timerit`` object
-itself. I believe that this consise method contains slightly more overhead than
+itself. I believe that this concise method contains slightly more overhead than
 the with-statement version. (I have seen evidence that this might actually be
 more accurate, but it needs further testing).
 
