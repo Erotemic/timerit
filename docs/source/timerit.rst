@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    timerit.core
+   timerit.relative
 
 Module contents
 ---------------
