@@ -10,6 +10,13 @@ class Relative:
         """
         `new` is `old` changed by `percent`
 
+        Args:
+            new (Number): the value before a change
+            old (Number): the value after a change
+
+        Returns:
+            float:
+
         Notes:
             negative numbers are percent increases
             positive numbers are percent decreases
@@ -30,6 +37,13 @@ class Relative:
         """
         `new` is `percent`% smaller than `old`
 
+        Args:
+            new (Number): the value before a change
+            old (Number): the value after a change
+
+        Returns:
+            float:
+
         >>> Relative.percent_decrease(1, 5)
         80.0
         >>> Relative.percent_decrease(2153, 3469)
@@ -43,6 +57,13 @@ class Relative:
     def percent_increase(new, old):
         """
         `new` is `percent`% larger than `old`
+
+        Args:
+            new (Number): the value before a change
+            old (Number): the value after a change
+
+        Returns:
+            float:
 
         Example:
             >>> Relative.percent_increase(5, 1)
@@ -58,6 +79,13 @@ class Relative:
     def percent_smaller(new, old):
         """
         `new` is `percent`% smaller than `old`
+
+        Args:
+            new (Number): the value before a change
+            old (Number): the value after a change
+
+        Returns:
+            float: a percent decrease
         """
         percent = Relative.percent_decrease(new, old)
         return percent
@@ -66,6 +94,13 @@ class Relative:
     def percent_bigger(new, old):
         """
         `new` is `percent`% smaller than `old`
+
+        Args:
+            new (Number): the value before a change
+            old (Number): the value after a change
+
+        Returns:
+            float: a percent increase
         """
         percent = Relative.percent_increase(new, old)
         return percent
@@ -76,11 +111,11 @@ class Relative:
         `new` is X percent slower than `old`
 
         Args:
-            new (float): measure of time
-            old (float): measure of time (with same units as new)
+            new (float): measure of duration before a change
+            old (float): measure of duration after a change (with same units as new)
 
         Returns:
-            precent_slower: how much slower `new` is as a percentage of `old`
+            float: a percent increase in duration
 
         Example:
             >>> from timerit.relative import Relative
@@ -103,15 +138,15 @@ class Relative:
         `new` is `percent`% faster than `old`
 
         Args:
-            new (float): measure of time
-            old (float): measure of time (with same units as new)
+            new (float): measure of duration before a change
+            old (float): measure of duration after a change (with same units as new)
 
         Returns:
-            percent: how much faster `new` is as a percentage of `old`
+            float: a percent decrease in duration
 
         References:
-            https://stackoverflow.com/questions/8127862/how-do-you-calculate-how-much-faster-time-x-is-from-time-y-in-terms-of
-            https://math.stackexchange.com/questions/716767/how-to-calculate-the-percentage-of-increase-decrease-with-negative-numbers/716770#716770
+            .. [SO8127862] https://stackoverflow.com/questions/8127862/how-do-you-calculate-how-much-faster-time-x-is-from-time-y-in-terms-of
+            .. [SO716767] https://math.stackexchange.com/questions/716767/how-to-calculate-the-percentage-of-increase-decrease-with-negative-numbers/716770#716770
 
         Notes:
             Equivalent to Relative.percent_decrease, because Faster means time
