@@ -3,9 +3,10 @@ First, :class:`Timer` is a context manager that times a block of indented
 code. Also has `tic` and `toc` methods for a more matlab like feel.
 
 Next, :class:`Timerit` is an alternative to the builtin timeit module. I think
-its better at least, maybe Tim Peters can show me otherwise. Perhaps there's a
-reason it has to work on strings and can't be placed around existing code like
-a with statement.
+it is also a better alternative - maybe Tim Peters can show me otherwise.
+Perhaps there is a reason timeit chooses to work on strings and can't be placed
+around existing code with a context manager. But as far as I can tell it is
+simpler and accomplishes the same task.
 
 
 Example:
