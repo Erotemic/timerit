@@ -1,19 +1,24 @@
-:github_url: https://github.com/Erotemic/ubelt
+.. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
+    # TODO: Add a logo
+    .. image:: https://i.imgur.com/PoYIsWE.png
+       :height: 100px
+       :align: left
 
-Timerit documentation
-=====================
+Welcome to timerit's documentation!
+===================================
 
 .. The __init__ files contains the top-level documentation overview
 .. automodule:: timerit.__init__
    :show-inheritance:
 
-.. commented out
-.. :members:
-.. :undoc-members:
-
-
 .. toctree::
-   :maxdepth: 8
-   :caption: API
+   :maxdepth: 5
 
-   modules
+   timerit
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
