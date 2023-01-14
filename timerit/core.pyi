@@ -1,29 +1,33 @@
 from typing import Union
 from typing import Any
+from typing import List
+from typing import Dict
+from _typeshed import Incomplete
+from typing import Any
 
 default_counter: str
 
 
 class Timer:
-    label: Any
-    verbose: Any
-    newline: Any
-    write: Any
-    flush: Any
+    label: str
+    verbose: Union[int, None]
+    newline: bool
+    write: Incomplete
+    flush: Incomplete
 
     def __init__(self,
-                 label: str = ...,
-                 verbose: Any | None = ...,
-                 newline: bool = ...,
-                 counter: str = ...) -> None:
+                 label: str = '',
+                 verbose: Union[int, None] = None,
+                 newline: bool = True,
+                 counter: str = 'auto') -> None:
         ...
 
     @property
-    def tstart(self):
+    def tstart(self) -> float:
         ...
 
     @property
-    def elapsed(self):
+    def elapsed(self) -> float:
         ...
 
     def tic(self) -> Timer:
@@ -40,29 +44,29 @@ class Timer:
 
 
 class Timerit:
-    num: Any
-    label: Any
-    bestof: Any
-    unit: Any
-    verbose: Any
-    times: Any
+    num: 'int, default=1'
+    label: Union[str, None]
+    bestof: int
+    unit: Union[str, None]
+    verbose: Union[int, None]
+    times: Incomplete
     total_time: int
-    n_loops: Any
-    measures: Any
+    n_loops: Incomplete
+    measures: Incomplete
 
     def __init__(self,
-                 num: int = ...,
-                 label: Any | None = ...,
-                 bestof: int = ...,
-                 unit: Any | None = ...,
-                 verbose: Any | None = ...,
-                 disable_gc: bool = ...,
-                 counter: str = ...) -> None:
+                 num: int = 1,
+                 label: Union[str, None] = None,
+                 bestof: int = 3,
+                 unit: Union[str, None] = None,
+                 verbose: Union[int, None] = None,
+                 disable_gc: bool = True,
+                 timer_cls: Union[None, Any] = None) -> None:
         ...
 
     def reset(self,
-              label: Union[str, None] = ...,
-              measures: bool = ...) -> Timerit:
+              label: Union[str, None] = None,
+              measures: bool = False) -> Timerit:
         ...
 
     def call(self, func, *args, **kwargs) -> Timerit:
@@ -71,15 +75,15 @@ class Timerit:
     def __iter__(self):
         ...
 
-    def robust_times(self):
+    def robust_times(self) -> List[float]:
         ...
 
     @property
-    def rankings(self):
+    def rankings(self) -> Dict[str, Dict[str, List[float]]]:
         ...
 
     @property
-    def consistency(self):
+    def consistency(self) -> float:
         ...
 
     def min(self) -> float:
@@ -91,16 +95,19 @@ class Timerit:
     def std(self) -> float:
         ...
 
-    def report(self, verbose: int = ...) -> str:
+    def summary(self) -> str:
         ...
 
-    def print(self, verbose: int = ...) -> None:
+    def report(self, verbose: int = 1) -> str:
+        ...
+
+    def print(self, verbose: int = 1) -> None:
         ...
 
 
 class _SetGCState:
-    enable: Any
-    prev: Any
+    enable: Incomplete
+    prev: Incomplete
 
     def __init__(self, enable) -> None:
         ...
