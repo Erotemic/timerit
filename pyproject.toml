@@ -10,16 +10,16 @@ tags = [ "erotemic", "purepy", "github",]
 mod_name = "timerit"
 repo_name = "timerit"
 rel_mod_parent_dpath = "."
-os = [ "all", "osx", "win", "linux",]
+os = [ "linux", "osx", "win",]
 min_python = 3.6
 version = "{mod_dpath}/__init__.py::__version__"
+url = "https://github.com/Erotemic/timerit"
 author = "Jon Crall"
 author_email = "erotemic@gmail.com"
 description = "A powerful multiline alternative to timeit"
 license = "Apache 2"
-typed = true
-url = 'https://github.com/Erotemic/timerit'
 dev_status = "stable"
+typed = true
 
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=dev --ignore-glob=docs"
