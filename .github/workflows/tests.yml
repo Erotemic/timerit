@@ -98,15 +98,15 @@ jobs:
     strategy:
       matrix:
         include:
-        - python-version: '3.7'
-          os: ubuntu-latest
+        - python-version: '3.6'
+          os: ubuntu-20.04
           install-extras: tests-strict,runtime-strict
           arch: auto
-        - python-version: '3.7'
+        - python-version: '3.6'
           os: macOS-latest
           install-extras: tests-strict,runtime-strict
           arch: auto
-        - python-version: '3.7'
+        - python-version: '3.6'
           os: windows-latest
           install-extras: tests-strict,runtime-strict
           arch: auto
@@ -130,6 +130,10 @@ jobs:
           os: windows-latest
           install-extras: tests
           arch: auto
+        - python-version: '3.6'
+          os: ubuntu-20.04
+          install-extras: tests,optional
+          arch: auto
         - python-version: '3.7'
           os: ubuntu-latest
           install-extras: tests,optional
@@ -150,6 +154,10 @@ jobs:
           os: ubuntu-latest
           install-extras: tests,optional
           arch: auto
+        - python-version: '3.6'
+          os: macOS-latest
+          install-extras: tests,optional
+          arch: auto
         - python-version: '3.7'
           os: macOS-latest
           install-extras: tests,optional
@@ -168,6 +176,10 @@ jobs:
           arch: auto
         - python-version: '3.11'
           os: macOS-latest
+          install-extras: tests,optional
+          arch: auto
+        - python-version: '3.6'
+          os: windows-latest
           install-extras: tests,optional
           arch: auto
         - python-version: '3.7'

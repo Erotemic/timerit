@@ -11,13 +11,13 @@ mod_name = "timerit"
 repo_name = "timerit"
 rel_mod_parent_dpath = "."
 os = [ "all", "osx", "win", "linux",]
-min_python = 3.7
+min_python = 3.6
 version = "{mod_dpath}/__init__.py::__version__"
 author = "Jon Crall"
 author_email = "erotemic@gmail.com"
-description = "The timerit module"
+description = "A powerful multiline alternative to timeit"
 license = "Apache 2"
-dev_status = "planning"
+dev_status = "stable"
 
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=dev --ignore-glob=docs"
