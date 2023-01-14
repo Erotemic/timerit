@@ -44,7 +44,7 @@ class Timer:
 
 
 class Timerit:
-    num: 'int, default=1'
+    num: int
     label: Union[str, None]
     bestof: int
     unit: Union[str, None]
@@ -79,7 +79,7 @@ class Timerit:
         ...
 
     @property
-    def rankings(self) -> Dict[str, Dict[str, List[float]]]:
+    def rankings(self) -> Dict[str, Dict[str, float]]:
         ...
 
     @property
@@ -95,7 +95,7 @@ class Timerit:
     def std(self) -> float:
         ...
 
-    def summary(self) -> str:
+    def summary(self, stat: str = 'mean') -> str:
         ...
 
     def report(self, verbose: int = 1) -> str:
