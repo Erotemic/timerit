@@ -44,6 +44,7 @@ class Timer:
 
 
 class Timerit:
+    measures: dict
     num: int
     label: Union[str, None]
     bestof: int
@@ -52,7 +53,6 @@ class Timerit:
     times: Incomplete
     total_time: int
     n_loops: Incomplete
-    measures: Incomplete
 
     def __init__(self,
                  num: int = 1,

@@ -139,6 +139,7 @@ napoleon_use_ivar = True
 autodoc_inherit_docstrings = False
 
 autodoc_member_order = 'bysource'
+autoclass_content = 'both'
 # autodoc_mock_imports = ['torch', 'torchvision', 'visdom']
 
 intersphinx_mapping = {

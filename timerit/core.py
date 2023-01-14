@@ -234,8 +234,8 @@ class Timerit:
     code and place in a Timerit block.
 
     Attributes:
-        measures - Labeled measurements taken by this object
-        rankings - Ranked measurements (useful if more than one measurement was taken)
+        measures (dict): Labeled measurements taken by this object
+        rankings (dict): Ranked measurements (useful if more than one measurement was taken)
 
     Example:
         >>> import math
