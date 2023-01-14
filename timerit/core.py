@@ -73,9 +73,9 @@ class Timer:
 
     Attributes:
 
-        tstart (float): timestamp of the last "tic" in seconds.
+        tstart (float): Timestamp of the last "tic" in seconds.
 
-        elapsed (float): number of seconds measured at the last "toc".
+        elapsed (float): Number of seconds measured at the last "toc".
 
     References:
         .. [MathWorksTic] https://www.mathworks.com/help/matlab/ref/tic.html
@@ -166,7 +166,7 @@ class Timer:
     def tstart(self):
         """
         Returns:
-            float: the timestamp of the last tic in seconds.
+            float: The timestamp of the last tic in seconds.
         """
         return self._raw_tstart * self._to_seconds
 
@@ -174,7 +174,7 @@ class Timer:
     def elapsed(self):
         """
         Returns:
-            float: the elapsed time duration in seconds
+            float: The elapsed time duration in seconds
         """
         return self._raw_elapsed * self._to_seconds
 
@@ -187,7 +187,7 @@ class Timer:
 
     def tic(self):
         """
-        starts the timer
+        Starts the timer.
 
         Returns:
             Timer: self
@@ -203,10 +203,10 @@ class Timer:
 
     def toc(self):
         """
-        stops the timer
+        Stops the timer.
 
         Returns:
-            float: amount of time that passed in seconds since the last tic.
+            float: Amount of time that passed in seconds since the last tic.
         """
         self._raw_toc()
         elapsed = self.elapsed
@@ -234,8 +234,8 @@ class Timerit:
     code and place in a Timerit block.
 
     Attributes:
-        measures - labeled measurements taken by this object
-        rankings - ranked measurements (useful if more than one measurement was taken)
+        measures - Labeled measurements taken by this object
+        rankings - Ranked measurements (useful if more than one measurement was taken)
 
     Example:
         >>> import math
@@ -281,13 +281,13 @@ class Timerit:
                  disable_gc=True, timer_cls=None):
         """
         Args:
-            num (int, default=1):
-                number of times to run the loop
+            num (int):
+                Number of times to run the loop. Defaults to 1.
 
             label (str | None):
-                identifier for printing and differentiating between different
-                measurements. Can be changed by calling :func:`reset`. Defaults
-                to None
+                An identifier for printing and differentiating between
+                different measurements. Can be changed by calling
+                :func:`reset`. Defaults to None
 
             bestof (int):
                 When computing statistics, groups measurements into chunks of
@@ -296,16 +296,16 @@ class Timerit:
                 the mean to noise in the measurements.
 
             unit (str | None):
-                what units time is reported in. Can be 's', 'us', 'ms', or
+                What units time is reported in. Can be 's', 'us', 'ms', or
                 'ns'. If unspecified a reasonable value is chosen.
 
             verbose (int | None):
-                verbosity level. Higher is more verbose, distinct text is
+                Verbosity level. Higher is more verbose, distinct text is
                 written at levels 1, 2, and 3. If unspecified, defaults to 1 if
                 label is given and 0 otherwise.
 
             disable_gc (bool):
-                if True, disables the garbage collector while timing, defaults to
+                If True, disables the garbage collector while timing, defaults to
                 True.
 
             timer_cls (None | Any):
@@ -348,11 +348,11 @@ class Timerit:
 
     def reset(self, label=None, measures=False):
         """
-        clears all measurements, allowing the object to be reused
+        Clears all measurements, allowing the object to be reused
 
         Args:
-            label (str | None) : change the label if specified
-            measures (bool, default=False): if True reset measures
+            label (str | None) : Change the label if specified
+            measures (bool, default=False): If True reset measures
 
         Returns:
             Timerit: self
@@ -554,7 +554,7 @@ class Timerit:
         measure of consistency.
 
         Returns:
-            float: hamming distance
+            float: Hamming distance
         """
         rankings = self.rankings
 
@@ -591,7 +591,7 @@ class Timerit:
         '''
 
         Returns:
-            float: minimum measured seconds over all trials
+            float: Minimum measured seconds over all trials
 
         Example:
             >>> import math
@@ -607,7 +607,7 @@ class Timerit:
         The mean of the best results of each trial.
 
         Returns:
-            float: mean of measured seconds
+            float: Mean of measured seconds
 
         Note:
             This is typically less informative than simply looking at the min.
@@ -630,7 +630,7 @@ class Timerit:
         The standard deviation of the best results of each trial.
 
         Returns:
-            float: standard deviation of measured seconds
+            float: Standard deviation of measured seconds
 
         Note:
             As mentioned in the timeit source code, the standard deviation is
@@ -652,7 +652,7 @@ class Timerit:
     def _seconds_str(self):
         """
         Returns:
-            str: human readable text
+            str: Human readable text
 
         Example:
             >>> from timerit import Timerit
@@ -686,7 +686,7 @@ class Timerit:
         Text indicating what has been / is being done.
 
         Args:
-            tense (str): either 'past' or 'present'
+            tense (str): Either 'past' or 'present'
 
         Returns:
             str:
@@ -712,11 +712,12 @@ class Timerit:
         using the reset method.
 
         Args:
-            stat (str): can be mean or min.
+            stat (str): Can be mean or min.
 
         Returns:
-            str: summary text describing relative change between different
-            labeled measurements.
+            str:
+                Summary text describing relative change between different
+                labeled measurements.
 
         Example:
             >>> import math
@@ -750,10 +751,10 @@ class Timerit:
         Creates a human readable report
 
         Args:
-            verbose (int): verbosity level. Either 1, 2, or 3.
+            verbose (int): Verbosity level. Either 1, 2, or 3.
 
         Returns:
-            str: the report text summarizing the most recent measurement.
+            str: The report text summarizing the most recent measurement.
 
         SeeAlso:
             :func:`Timerit.print`
@@ -797,7 +798,7 @@ class Timerit:
         Prints human readable report using the print function
 
         Args:
-            verbose (int): verbosity level
+            verbose (int): Verbosity level
 
         SeeAlso:
             :func:`Timerit.report`
@@ -825,7 +826,7 @@ class _SetGCState(object):
     Set the state and then returns to previous state after context exists.
 
     Args:
-        enable (bool): set the gc to this state.
+        enable (bool): Set the gc to this state.
 
     Example:
         >>> import gc
@@ -864,12 +865,12 @@ def _chunks(seq, size):
 
 def _choose_unit(value, unit=None, asciimode=None):
     """
-    Finds a good unit to print seconds in
+    Finds a good unit to print seconds in.
 
     Args:
-        value (float): measured value in seconds
-        unit (str): if specified, overrides heuristic decision
-        asciimode (bool): if True, forces ascii for microseconds
+        value (float): Measured value in seconds
+        unit (str): If specified, overrides heuristic decision
+        asciimode (bool): If True, forces ascii for microseconds
 
     Returns:
         tuple[(str, float)]: suffix, mag:
@@ -900,12 +901,12 @@ def _choose_unit(value, unit=None, asciimode=None):
 
 def _trychar(char, fallback, asciimode=None):  # nocover
     """
-    Logic from IPython timeit to handle terminals that can't show mu
+    Logic from IPython timeit to handle terminals that can't show mu.
 
     Args:
-        char (str): character, typically unicode, to try to use
-        fallback (str): ascii character to use if stdout cannot encode char
-        asciimode (bool): if True, always use fallback
+        char (str): A character, typically unicode, to try to use
+        fallback (str): ASCII character to use if stdout cannot encode char
+        asciimode (bool): If True, always use fallback
 
     Example:
         >>> from timerit.core import _trychar
