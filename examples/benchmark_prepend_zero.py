@@ -42,7 +42,7 @@ def benchmark_template():
 
     # These are the parameters that we benchmark over
     basis = {
-        'method': ['method_plus', 'method_chain', 'method_chain_map', 'method_insert'],
+        'method': ['method_plus', 'method_chain_gen', 'method_chain_map', 'method_insert'],
         'N': list(range(1, 100)),
     }
     xlabel = 'N'
@@ -175,8 +175,8 @@ def benchmark_template():
         ax = kwplot.figure(fnum=1, doclf=True).gca()
         sns.lineplot(data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw)
         ax.set_title('Benchmark Name')
-        ax.set_xlabel('Size (todo: A better x-variable description)')
-        ax.set_ylabel('Time (todo: A better y-variable description)')
+        ax.set_xlabel('Size of List')
+        ax.set_ylabel('Time to prepend a zero to a new list')
         # ax.set_xscale('log')
         ax.set_yscale('log')
 
