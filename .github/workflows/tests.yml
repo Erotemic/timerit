@@ -295,7 +295,7 @@ jobs:
         echo "Installing helpers"
         pip install pip setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
-        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('timerit*.whl'))[-1]).replace(r'\', '/'))")
+        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('timerit*.whl'))[-1]).replace(chr(92), chr(47)))")
         export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
         pip install --prefer-binary "timerit[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
