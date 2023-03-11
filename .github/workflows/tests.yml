@@ -321,7 +321,7 @@ jobs:
         running the pytest command inside the workspace
         ---
         "
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="{self.mod_name}" "$MOD_DPATH" ../tests
+        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="timerit" "$MOD_DPATH" ../tests
         echo "pytest command finished, moving the coverage file to the repo root"
         ls -al
         # Move coverage file to a new name
