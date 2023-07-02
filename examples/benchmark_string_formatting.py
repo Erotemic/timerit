@@ -7,9 +7,9 @@ def benchmark_template():
     import inspect
 
     plot_labels = {
-        'x': 'Size',
-        'y': 'Time',
-        'title': 'Benchmark Name',
+        'x': 'Number of arguments',
+        'y': 'Seconds',
+        'title': 'string % op vs .format method',
     }
 
     # Some bookkeeping needs to be done to build a dictionary that maps the
