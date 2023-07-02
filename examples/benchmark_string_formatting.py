@@ -1,3 +1,42 @@
+import ubelt as ub
+
+
+@ub.memoize
+def build_fstring_function(num_vars, arg_type):
+    if arg_type == 'int':
+        fmt_code = 'd'
+    elif arg_type == 'float':
+        fmt_code = 'f'
+    elif arg_type == 'padded_int':
+        fmt_code = '03d'
+    elif arg_type == 'padded_float':
+        fmt_code = '05.3f'
+    elif arg_type == 'string':
+        fmt_code = 's'
+
+    parts = []
+    varnames = []
+    for i in range(num_vars):
+        varname = f'var_{i}'
+        format_part = '{' + varname + ':' + fmt_code + '}'
+        parts.append(format_part)
+        varnames.append(varname)
+
+    fstring_body = ' '.join(parts)
+
+    sig = ', '.join(varnames)
+
+    funcname = f'fstring_method_{arg_type}_{num_vars}'
+    text = ub.codeblock(
+        f'''
+        def {funcname}({sig}):
+            return f'{fstring_body}'
+        ''')
+    print(text)
+    context = {}
+    exec(text, context, context)
+    func = context[funcname]
+    return func
 
 
 def benchmark_template():
@@ -32,6 +71,9 @@ def benchmark_template():
         ret = template % args
         return ret
 
+    ### Testing f-strings themselves is a bit tricky, but we can do it with a
+    ### a few hacks.
+
     # Change params here to modify number of trials
     ti = timerit.Timerit(1000, bestof=30, verbose=1)
 
@@ -41,9 +83,18 @@ def benchmark_template():
 
     # These are the parameters that we benchmark over
     basis = {
-        'method': list(method_lut),
-        'num_vars': [0, 30],
-        'arg_type': ['int', 'padded_int', 'float', 'padded_float', 'string'],
+        'method': list(method_lut) + [
+            'fstring'
+        ],
+        'num_vars': [1, 2, 3, 4, 5],
+        # 'num_vars': list(range(1, 10)),
+        'arg_type': [
+            'int',
+            # 'padded_int',
+            # 'float',
+            # 'padded_float',
+            'string'
+        ],
     }
     # Set these to param labels that directly transfer to method kwargs
     kw_labels = list(inspect.signature(ub.peek(method_lut.values())).parameters)
@@ -72,45 +123,41 @@ def benchmark_template():
         # Make any modifications you need to compute input kwargs for each
         # method here.
         kwargs = params & kw_labels
+        args = tuple()
 
-        if params['arg_type'] == 'int':
+        arg_type = params['arg_type']
+        num_vars = params['num_vars']
+        if arg_type == 'int':
             arg_part = 3
-        elif params['arg_type'] == 'float':
+            fmt_code = 'd'
+        elif arg_type == 'float':
             arg_part = 1 / 3
-        elif params['arg_type'] == 'padded_int':
+            fmt_code = 'f'
+        elif arg_type == 'padded_int':
             arg_part = 3
-        elif params['arg_type'] == 'string':
+            fmt_code = '03d'
+        elif arg_type == 'padded_float':
+            arg_part = 1 / 3
+            fmt_code = '05.3f'
+        elif arg_type == 'string':
             arg_part = '3'
+            fmt_code = 's'
 
-        if params['method'] == 'format_method':
-            if params['arg_type'] == 'int':
-                template_part = '{:d}'
-            elif params['arg_type'] == 'float':
-                template_part = '{:f}'
-            elif params['arg_type'] == 'padded_float':
-                template_part = '{:05.3}'
-            elif params['arg_type'] == 'padded_int':
-                template_part = '{:03d}'
-            elif params['arg_type'] == 'string':
-                template_part = '{:s}'
-            kwargs['template'] = ''.join([template_part] * params['num_vars'])
+        if params['method'] == 'fstring':
+            method = build_fstring_function(num_vars, arg_type)
+            args = tuple([arg_part] * params['num_vars'])
+            kwargs = {}
+        elif params['method'] == 'format_method':
+            template_part = '{:' + fmt_code + '}'
+            kwargs['template'] = ' '.join([template_part] * params['num_vars'])
             kwargs['args'] = tuple([arg_part] * params['num_vars'])
-
+            method = method_lut[params['method']]
         elif params['method'] == 'percent_operator':
-            if params['arg_type'] == 'int':
-                template_part = '%d'
-            elif params['arg_type'] == 'float':
-                template_part = '%f'
-            elif params['arg_type'] == 'padded_float':
-                template_part = '%05.3f'
-            elif params['arg_type'] == 'padded_int':
-                template_part = '%03d'
-            elif params['arg_type'] == 'string':
-                template_part = '%s'
-            kwargs['template'] = ''.join([template_part] * params['num_vars'])
+            template_part = '%' + fmt_code
+            kwargs['template'] = ' '.join([template_part] * params['num_vars'])
             kwargs['args'] = tuple([arg_part] * params['num_vars'])
+            method = method_lut[params['method']]
 
-        method = method_lut[params['method']]
         # Timerit will run some user-specified number of loops.
         # and compute time stats with similar methodology to timeit
         for timer in ti.reset(key):
@@ -118,7 +165,7 @@ def benchmark_template():
             # ...
             with timer:
                 # Put the logic you want to time here
-                method(**kwargs)
+                method(*args, **kwargs)
 
         if RECORD_ALL:
             # Seaborn will show the variance if this is enabled, otherwise
