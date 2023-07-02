@@ -23,19 +23,17 @@ def benchmark_template():
     # parameters that you want to vary in the test.
 
     @register_method
-    def method1(xparam, yparam, zparam):
-        ret = []
-        for i in range((xparam + yparam) * zparam):
-            ret.append(i)
+    def format_method(template, args):
+        ret = template.format(*args)
         return ret
 
     @register_method
-    def method2(xparam, yparam, zparam):
-        ret = [i for i in range((xparam + yparam) * zparam)]
+    def percent_operator(template, args):
+        ret = template % args
         return ret
 
     # Change params here to modify number of trials
-    ti = timerit.Timerit(100, bestof=10, verbose=1)
+    ti = timerit.Timerit(1000, bestof=30, verbose=1)
 
     # if True, record every trail run and show variance in seaborn
     # if False, use the standard timerit min/mean measures
@@ -43,11 +41,9 @@ def benchmark_template():
 
     # These are the parameters that we benchmark over
     basis = {
-        'method': list(method_lut),  # i.e. ['method1', 'method2']
-        'xparam': list(range(7)),
-        'yparam': [0, 100],
-        'zparam': [2, 3]
-        # 'param_name': [param values],
+        'method': list(method_lut),
+        'num_vars': [0, 30],
+        'arg_type': ['int', 'padded_int', 'float', 'padded_float', 'string'],
     }
     # Set these to param labels that directly transfer to method kwargs
     kw_labels = list(inspect.signature(ub.peek(method_lut.values())).parameters)
@@ -55,10 +51,10 @@ def benchmark_template():
     # kw_labels = ['xparam', 'y', 'z']
     # Set these to empty lists if they are not used, removing dict items breaks
     # the code.
-    xlabel = 'xparam'
+    xlabel = 'num_vars'
     group_labels = {
-        'style': ['yparam'],
-        'size': ['zparam'],
+        'style': ['arg_type'],
+        # 'size': ['zparam'],
     }
     group_labels['hue'] = list(
         (ub.oset(basis) - {xlabel}) - set.union(*map(set, group_labels.values())))
@@ -76,6 +72,44 @@ def benchmark_template():
         # Make any modifications you need to compute input kwargs for each
         # method here.
         kwargs = params & kw_labels
+
+        if params['arg_type'] == 'int':
+            arg_part = 3
+        elif params['arg_type'] == 'float':
+            arg_part = 1 / 3
+        elif params['arg_type'] == 'padded_int':
+            arg_part = 3
+        elif params['arg_type'] == 'string':
+            arg_part = '3'
+
+        if params['method'] == 'format_method':
+            if params['arg_type'] == 'int':
+                template_part = '{:d}'
+            elif params['arg_type'] == 'float':
+                template_part = '{:f}'
+            elif params['arg_type'] == 'padded_float':
+                template_part = '{:05.3}'
+            elif params['arg_type'] == 'padded_int':
+                template_part = '{:03d}'
+            elif params['arg_type'] == 'string':
+                template_part = '{:s}'
+            kwargs['template'] = ''.join([template_part] * params['num_vars'])
+            kwargs['args'] = tuple([arg_part] * params['num_vars'])
+
+        elif params['method'] == 'percent_operator':
+            if params['arg_type'] == 'int':
+                template_part = '%d'
+            elif params['arg_type'] == 'float':
+                template_part = '%f'
+            elif params['arg_type'] == 'padded_float':
+                template_part = '%05.3f'
+            elif params['arg_type'] == 'padded_int':
+                template_part = '%03d'
+            elif params['arg_type'] == 'string':
+                template_part = '%s'
+            kwargs['template'] = ''.join([template_part] * params['num_vars'])
+            kwargs['args'] = tuple([arg_part] * params['num_vars'])
+
         method = method_lut[params['method']]
         # Timerit will run some user-specified number of loops.
         # and compute time stats with similar methodology to timeit
@@ -185,6 +219,7 @@ def benchmark_template():
         ax.set_title(plot_labels['title'])
         ax.set_xlabel(plot_labels['x'])
         ax.set_ylabel(plot_labels['y'])
+        # ax.set_xscale('log')
         # ax.set_xscale('log')
         # ax.set_yscale('log')
 
