@@ -278,7 +278,7 @@ class Timerit:
     _default_precision = 3
     _default_precision_type = 'f'  # could also be reasonably be 'g' or ''
 
-    def __init__(self, num=None, label=None, bestof=3, unit=None, verbose=None,
+    def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None,
                  disable_gc=True, timer_cls=None, min_duration=0.2):
         """
         Args:
@@ -318,9 +318,10 @@ class Timerit:
 
             min_duration (float):
                 Continue running the loop until the given amount of time has
-                elapsed.  This allows running the loop enough times to get a
-                robust measurement without having to know a priori how long
-                each iteration of the loop will take.
+                elapsed.  This makes it easier to run the loop enough times to
+                get a robust measurement without having to know a priori how
+                long each iteration of the loop will take.  Note that this
+                argument is ignored if the *num* argument is not None.
         """
         if verbose is None:
             verbose = bool(label)
@@ -711,10 +712,10 @@ class Timerit:
             >>> from time import sleep
             >>> t = Timerit()
             >>> print(t._status_line())
-            Timing for: 0.200s
+            Timing for: 1 loops, best of 1
             >>> t.call(sleep, 0.01)
             >>> print(t._status_line())
-            Timed for: 20 loops, best of 3
+            Timed for: 1 loops, best of 1
         """
 
         tense = 'present' if self.n_loops is None else 'past'

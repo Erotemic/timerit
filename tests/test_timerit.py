@@ -112,20 +112,20 @@ def test_hacked_timerit_verbose():
         ''').strip()
 
     with CaptureStdout(suppress=False) as cap:
-        HackedTimerit(label='foo', verbose=0, min_duration=100).call(lambda: None)
+        HackedTimerit(num=None, label='foo', verbose=0, min_duration=100).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         ''').strip()
 
     with CaptureStdout(suppress=False) as cap:
-        HackedTimerit(label='foo', verbose=1, min_duration=100).call(lambda: None)
+        HackedTimerit(num=None, label='foo', verbose=1, min_duration=100).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timed best=42.000 s, mean=42.000 +- 0.0 s for foo
         ''').strip()
 
     with CaptureStdout(suppress=False) as cap:
-        HackedTimerit(label='foo', verbose=2, min_duration=100).call(lambda: None)
+        HackedTimerit(num=None, label='foo', verbose=2, min_duration=100).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timed foo for: 3 loops, best of 3
@@ -133,7 +133,7 @@ def test_hacked_timerit_verbose():
         ''').strip()
 
     with CaptureStdout(suppress=False) as cap:
-        HackedTimerit(label='foo', verbose=3, min_duration=100).call(lambda: None)
+        HackedTimerit(num=None, label='foo', verbose=3, min_duration=100).call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timing foo for: 100.000s
@@ -141,6 +141,7 @@ def test_hacked_timerit_verbose():
             body took: 126.000 s
             time per loop: best=42.000 s, mean=42.000 +- 0.0 s
         ''').strip()
+
 
 def test_timer_default_verbosity():
 
