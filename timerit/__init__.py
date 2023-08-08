@@ -26,7 +26,7 @@ a single line, but including more is trivial.
         time per loop: best=2.064 ms, mean=2.115 +- 0.05 ms
     t1.total_time = 0.4427177629695507
 """
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 __mkinit__ = """
 # Autogen command

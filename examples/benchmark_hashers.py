@@ -9,7 +9,7 @@ def benchmark_template():
     plot_labels = {
         'x': 'Size',
         'y': 'Time',
-        'title': 'Benchmark Name',
+        'title': 'Hashers',
     }
 
     # Some bookkeeping needs to be done to build a dictionary that maps the
@@ -23,16 +23,20 @@ def benchmark_template():
     # parameters that you want to vary in the test.
 
     @register_method
-    def method1(xparam, yparam, zparam):
-        ret = []
-        for i in range((xparam + yparam) * zparam):
-            ret.append(i)
-        return ret
+    def blake3(data):
+        ub.hash_data(data, hasher='blake3')
 
     @register_method
-    def method2(xparam, yparam, zparam):
-        ret = [i for i in range((xparam + yparam) * zparam)]
-        return ret
+    def md5(data):
+        ub.hash_data(data, hasher='md5')
+
+    @register_method
+    def sha256(data):
+        ub.hash_data(data, hasher='sha256')
+
+    @register_method
+    def xxh64(data):
+        ub.hash_data(data, hasher='xxh64')
 
     # Change params here to modify number of trials
     ti = timerit.Timerit(100, bestof=10, verbose=1)
@@ -44,9 +48,7 @@ def benchmark_template():
     # These are the parameters that we benchmark over
     basis = {
         'method': list(method_lut),  # i.e. ['method1', 'method2']
-        'xparam': list(range(7)),
-        'yparam': [0, 100],
-        'zparam': [2, 3]
+        'data_size': [1, 100, 1_000, 10_000, 100_000],
         # 'param_name': [param values],
     }
     # Set these to param labels that directly transfer to method kwargs
@@ -55,13 +57,13 @@ def benchmark_template():
     # kw_labels = ['xparam', 'y', 'z']
     # Set these to empty lists if they are not used, removing dict items breaks
     # the code.
-    xlabel = 'xparam'
+    xlabel = 'data_size'
     group_labels = {
-        'style': ['yparam'],
-        'size': ['zparam'],
+        # 'style': ['yparam'],
+        # 'size': ['zparam'],
     }
     group_labels['hue'] = list(
-        (ub.oset(basis) - {xlabel}) - set.union(*map(set, group_labels.values())))
+        (ub.oset(basis) - {xlabel}) - set.union(set(), *map(set, group_labels.values())))
     grid_iter = list(ub.named_product(basis))
 
     # For each variation of your experiment, create a row.
@@ -76,6 +78,8 @@ def benchmark_template():
         # Make any modifications you need to compute input kwargs for each
         # method here.
         kwargs = params & kw_labels
+        data_size = params['data_size']
+        kwargs['data'] = 'foobar' * data_size
         method = method_lut[params['method']]
         # Timerit will run some user-specified number of loops.
         # and compute time stats with similar methodology to timeit
@@ -197,6 +201,6 @@ def benchmark_template():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/timerit/examples/benchmark_template.py
+        python ~/code/timerit/examples/benchmark_hashers.py
     """
     benchmark_template()

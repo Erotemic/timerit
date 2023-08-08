@@ -1,3 +1,42 @@
+import ubelt as ub
+
+
+@ub.memoize
+def build_fstring_function(num_vars, arg_type):
+    if arg_type == 'int':
+        fmt_code = 'd'
+    elif arg_type == 'float':
+        fmt_code = 'f'
+    elif arg_type == 'padded_int':
+        fmt_code = '03d'
+    elif arg_type == 'padded_float':
+        fmt_code = '05.3f'
+    elif arg_type == 'string':
+        fmt_code = 's'
+
+    parts = []
+    varnames = []
+    for i in range(num_vars):
+        varname = f'var_{i}'
+        format_part = '{' + varname + ':' + fmt_code + '}'
+        parts.append(format_part)
+        varnames.append(varname)
+
+    fstring_body = ' '.join(parts)
+
+    sig = ', '.join(varnames)
+
+    funcname = f'fstring_method_{arg_type}_{num_vars}'
+    text = ub.codeblock(
+        f'''
+        def {funcname}({sig}):
+            return f'{fstring_body}'
+        ''')
+    print(text)
+    context = {}
+    exec(text, context, context)
+    func = context[funcname]
+    return func
 
 
 def benchmark_template():
@@ -7,9 +46,9 @@ def benchmark_template():
     import inspect
 
     plot_labels = {
-        'x': 'Size',
-        'y': 'Time',
-        'title': 'Benchmark Name',
+        'x': 'Number of arguments',
+        'y': 'Seconds',
+        'title': 'string % op vs .format method',
     }
 
     # Some bookkeeping needs to be done to build a dictionary that maps the
@@ -23,19 +62,20 @@ def benchmark_template():
     # parameters that you want to vary in the test.
 
     @register_method
-    def method1(xparam, yparam, zparam):
-        ret = []
-        for i in range((xparam + yparam) * zparam):
-            ret.append(i)
+    def format_method(template, args):
+        ret = template.format(*args)
         return ret
 
     @register_method
-    def method2(xparam, yparam, zparam):
-        ret = [i for i in range((xparam + yparam) * zparam)]
+    def percent_operator(template, args):
+        ret = template % args
         return ret
 
+    ### Testing f-strings themselves is a bit tricky, but we can do it with a
+    ### a few hacks.
+
     # Change params here to modify number of trials
-    ti = timerit.Timerit(100, bestof=10, verbose=1)
+    ti = timerit.Timerit(1000, bestof=30, verbose=1)
 
     # if True, record every trail run and show variance in seaborn
     # if False, use the standard timerit min/mean measures
@@ -43,11 +83,18 @@ def benchmark_template():
 
     # These are the parameters that we benchmark over
     basis = {
-        'method': list(method_lut),  # i.e. ['method1', 'method2']
-        'xparam': list(range(7)),
-        'yparam': [0, 100],
-        'zparam': [2, 3]
-        # 'param_name': [param values],
+        'method': list(method_lut) + [
+            'fstring'
+        ],
+        'num_vars': [1, 2, 3, 4, 5],
+        # 'num_vars': list(range(1, 10)),
+        'arg_type': [
+            'int',
+            # 'padded_int',
+            # 'float',
+            # 'padded_float',
+            'string'
+        ],
     }
     # Set these to param labels that directly transfer to method kwargs
     kw_labels = list(inspect.signature(ub.peek(method_lut.values())).parameters)
@@ -55,10 +102,10 @@ def benchmark_template():
     # kw_labels = ['xparam', 'y', 'z']
     # Set these to empty lists if they are not used, removing dict items breaks
     # the code.
-    xlabel = 'xparam'
+    xlabel = 'num_vars'
     group_labels = {
-        'style': ['yparam'],
-        'size': ['zparam'],
+        'style': ['arg_type'],
+        # 'size': ['zparam'],
     }
     group_labels['hue'] = list(
         (ub.oset(basis) - {xlabel}) - set.union(*map(set, group_labels.values())))
@@ -76,7 +123,41 @@ def benchmark_template():
         # Make any modifications you need to compute input kwargs for each
         # method here.
         kwargs = params & kw_labels
-        method = method_lut[params['method']]
+        args = tuple()
+
+        arg_type = params['arg_type']
+        num_vars = params['num_vars']
+        if arg_type == 'int':
+            arg_part = 3
+            fmt_code = 'd'
+        elif arg_type == 'float':
+            arg_part = 1 / 3
+            fmt_code = 'f'
+        elif arg_type == 'padded_int':
+            arg_part = 3
+            fmt_code = '03d'
+        elif arg_type == 'padded_float':
+            arg_part = 1 / 3
+            fmt_code = '05.3f'
+        elif arg_type == 'string':
+            arg_part = '3'
+            fmt_code = 's'
+
+        if params['method'] == 'fstring':
+            method = build_fstring_function(num_vars, arg_type)
+            args = tuple([arg_part] * params['num_vars'])
+            kwargs = {}
+        elif params['method'] == 'format_method':
+            template_part = '{:' + fmt_code + '}'
+            kwargs['template'] = ' '.join([template_part] * params['num_vars'])
+            kwargs['args'] = tuple([arg_part] * params['num_vars'])
+            method = method_lut[params['method']]
+        elif params['method'] == 'percent_operator':
+            template_part = '%' + fmt_code
+            kwargs['template'] = ' '.join([template_part] * params['num_vars'])
+            kwargs['args'] = tuple([arg_part] * params['num_vars'])
+            method = method_lut[params['method']]
+
         # Timerit will run some user-specified number of loops.
         # and compute time stats with similar methodology to timeit
         for timer in ti.reset(key):
@@ -84,7 +165,7 @@ def benchmark_template():
             # ...
             with timer:
                 # Put the logic you want to time here
-                method(**kwargs)
+                method(*args, **kwargs)
 
         if RECORD_ALL:
             # Seaborn will show the variance if this is enabled, otherwise
@@ -185,6 +266,7 @@ def benchmark_template():
         ax.set_title(plot_labels['title'])
         ax.set_xlabel(plot_labels['x'])
         ax.set_ylabel(plot_labels['y'])
+        # ax.set_xscale('log')
         # ax.set_xscale('log')
         # ax.set_yscale('log')
 
