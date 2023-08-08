@@ -427,7 +427,7 @@ class Timerit:
         bg_timer = self._bg_timer
         fg_timer = self._fg_timer
         # disable the garbage collector while timing
-        with _SetGCState(enable=False):
+        with _SetGCState(enable=False), _SetDisplayHook():
             # Core timing loop
             for _ in it.repeat(None, self.num):
                 # Start background timer (in case the user doesn't use fg_timer)
@@ -857,6 +857,23 @@ class _SetGCState(object):
             gc.enable()
         else:
             gc.disable()
+
+class _SetDisplayHook(object):
+    """
+    Context manager to prevent the REPL interpreter from printing the value of 
+    any expressions within the for loop that don't evaluate to None.
+
+    Printing is relatively expensive, and so this behavior can easily lead to 
+    timings that are much longer than they should be.
+    """
+    def __enter__(self):
+        self._orig_display_hook = sys.displayhook
+        sys.displayhook = lambda x: None
+
+    def __exit__(self, ex_type, ex_value, trace):
+        sys.displayhook = self._orig_display_hook
+
+
 
 
 def _chunks(seq, size):
