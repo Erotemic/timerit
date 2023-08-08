@@ -36,3 +36,21 @@ mkinit timerit --nomods --relative
 from .core import (Timer, Timerit,)
 
 __all__ = ['Timer', 'Timerit']
+
+
+# Hack to make the package directly usable as an iterator/callable.  Only works
+# for python 3.5 or higher.  See this Stack Overflow post:
+# https://stackoverflow.com/questions/1060796/callable-modules
+
+import sys
+
+class TimeritModule(sys.modules[__name__].__class__):
+
+    def __iter__(self):
+        yield from Timerit()
+
+    def __call__(self, *args, **kwargs):
+        return Timerit(*args, **kwargs)
+
+sys.modules[__name__].__class__ = TimeritModule
+del sys, TimeritModule

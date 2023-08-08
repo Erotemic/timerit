@@ -1,8 +1,9 @@
 from xdoctest.utils import CaptureStdout
 from timerit import Timer, Timerit
 from functools import partial
-import random
 
+import timerit
+import random
 
 class HackedTime(object):
     """
@@ -76,6 +77,39 @@ def test_timerit_verbose():
         Timerit(3, label='foo', verbose=4).call(lambda: None)
     assert cap.text.count('\n') == 4
     assert cap.text.count('foo') == 2
+
+def test_timerit_verbose_via_package():
+    with CaptureStdout() as cap:
+        for _ in timerit:
+            pass
+    assert cap.text == ''
+
+    with CaptureStdout() as cap:
+        timerit(3, label='foo', verbose=0).call(lambda: None)
+    assert cap.text == ''
+
+    with CaptureStdout() as cap:
+        timerit(3, label='foo', verbose=1).call(lambda: None)
+    assert cap.text.count('\n') == 1
+    assert cap.text.count('foo') == 1
+
+    with CaptureStdout() as cap:
+        timerit(3, label='foo', verbose=2).call(lambda: None)
+    assert cap.text.count('\n') == 2
+    assert cap.text.count('foo') == 1
+
+    with CaptureStdout() as cap:
+        timerit(3, label='foo', verbose=3).call(lambda: None)
+    assert cap.text.count('\n') == 4
+    assert cap.text.count('foo') == 2
+
+    with CaptureStdout() as cap:
+        timerit(3, label='foo', verbose=4).call(lambda: None)
+    assert cap.text.count('\n') == 4
+    assert cap.text.count('foo') == 2
+
+
+
 
 
 def test_hacked_timerit_verbose():
@@ -277,6 +311,9 @@ def test_timer_context():
     assert timer.parent.total_time == 200
     assert timer.parent.min() == 2
 
+    
+    
+    
 
 if __name__ == '__main__':
     r"""
