@@ -278,12 +278,15 @@ class Timerit:
     _default_precision = 3
     _default_precision_type = 'f'  # could also be reasonably be 'g' or ''
 
-    def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None,
-                 disable_gc=True, timer_cls=None):
+    def __init__(self, num=None, label=None, bestof=3, unit=None, verbose=None,
+                 disable_gc=True, timer_cls=None, min_duration=0.2):
         """
         Args:
             num (int):
-                Number of times to run the loop. Defaults to 1.
+                Number of times to run the loop.  By default, the loop will keep
+                running until the amount of time specified by the *min_duration*
+                argument has elapsed.  This argument eliminates this behavior
+                and simply runs the loop the specified number of times.
 
             label (str | None):
                 An identifier for printing and differentiating between
@@ -312,6 +315,12 @@ class Timerit:
             timer_cls (None | Any):
                 If specified, replaces the default :class:`Timer` class with a
                 customized one. Mainly useful for testing.
+
+            min_duration (float):
+                Continue running the loop until the given amount of time has
+                elapsed.  This allows running the loop enough times to get a
+                robust measurement without having to know a priori how long
+                each iteration of the loop will take.
         """
         if verbose is None:
             verbose = bool(label)
@@ -321,6 +330,7 @@ class Timerit:
         self.bestof = bestof
         self.unit = unit
         self.verbose = verbose
+        self.min_duration = min_duration
 
         self.times = []
         self.total_time = 0
@@ -416,21 +426,28 @@ class Timerit:
 
     def __iter__(self):
         if self.verbose >= 3:
-            print(self._status_line(tense='present'))
+            print(self._status_line())
 
         self.n_loops = 0
         self.total_time = 0
 
-        # TODO: if num is unspecified, can we just run for a set amount of time
-        # and then stop?
-
         bg_timer = self._bg_timer
         fg_timer = self._fg_timer
+
         # disable the garbage collector while timing
         with _SetGCState(enable=False), _SetDisplayHook():
             # Core timing loop
-            for _ in it.repeat(None, self.num):
-                # Start background timer (in case the user doesn't use fg_timer)
+            while True:
+
+                if self.num is None:
+                    if self.total_time > self.min_duration:
+                        break
+                else:
+                    if self.n_loops >= self.num:
+                        break
+
+                # Start background timer (in case the user doesn't use 
+                # fg_timer)
                 # Yield foreground timer to let the user run a block of code
                 # When we return from yield the user code will have just finished
                 # Then record background time + loop overhead
@@ -447,7 +464,7 @@ class Timerit:
                 self.total_time += block_time
                 self.n_loops += 1
         # Timing complete, print results
-        if len(self.times) != self.num:
+        if self.num and len(self.times) != self.num:
             raise AssertionError(
                 'incorrectly recorded times, need to reset timerit object')
 
@@ -682,27 +699,44 @@ class Timerit:
                                  pr1=pr1, pr2=pr2)
         return unit_str
 
-    def _status_line(self, tense='past'):
+    def _status_line(self):
         """
         Text indicating what has been / is being done.
-
-        Args:
-            tense (str): Either 'past' or 'present'
 
         Returns:
             str:
 
         Example:
-            >>> from timerit import Timer
-            >>> print(Timerit()._status_line(tense='past'))
-            Timed for: 1 loops, best of 1
-            >>> print(Timerit()._status_line(tense='present'))
-            Timing for: 1 loops, best of 1
+            >>> from timerit import Timerit
+            >>> from time import sleep
+            >>> t = Timerit()
+            >>> print(t._status_line())
+            Timing for: 0.200s
+            >>> t.call(sleep, 0.01)
+            >>> print(t._status_line())
+            Timed for: 20 loops, best of 3
         """
+
+        tense = 'present' if self.n_loops is None else 'past'
+
         action = {'past': 'Timed',  'present': 'Timing'}[tense]
-        line = '{action} {label}for: {num:d} loops, best of {bestof:d}'.format(
+
+        if tense == 'present':
+            if self.num is None:
+                duration = '{:.3f}s'.format(self.min_duration)
+            else:
+                duration = '{num:d} loops, best of {bestof:d}'.format(
+                        num=self.num,
+                        bestof=min(self.bestof, self.num))
+        else:
+            duration = '{num:d} loops, best of {bestof:d}'.format(
+                    num=self.n_loops,
+                    bestof=min(self.bestof, self.n_loops or 1))
+
+        line = '{action} {label}for: {duration}'.format(
             label=self.label + ' ' if self.label else '',
-            action=action, num=self.num, bestof=min(self.bestof, self.num))
+            action=action, duration=duration)
+
         return line
 
     def summary(self, stat='mean'):
@@ -775,7 +809,7 @@ class Timerit:
         lines = []
         if verbose >= 2:
             # use a multi-line format for high verbosity
-            lines.append(self._status_line(tense='past'))
+            lines.append(self._status_line())
             if verbose >= 3:
                 unit, mag = _choose_unit(self.total_time, self.unit,
                                          self._asciimode)
