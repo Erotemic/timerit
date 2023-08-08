@@ -49,6 +49,7 @@ Example:
 """
 import time
 import sys
+import os
 import itertools as it
 from collections import defaultdict, OrderedDict
 
@@ -302,8 +303,10 @@ class Timerit:
 
             verbose (int | None):
                 Verbosity level. Higher is more verbose, distinct text is
-                written at levels 1, 2, and 3. If unspecified, defaults to 1 if
-                label is given and 0 otherwise.
+                written at levels 1, 2, and 3. If unspecified, the
+                ``$TIMERIT_VERBOSE`` environment is checked for a value.  If
+                still unspecified, defaults to 1 if label is given and 0
+                otherwise.
 
             disable_gc (bool):
                 If True, disables the garbage collector while timing, defaults to
@@ -314,7 +317,10 @@ class Timerit:
                 customized one. Mainly useful for testing.
         """
         if verbose is None:
+            verbose = os.environ.get('TIMERIT_VERBOSE')
+        if verbose is None:
             verbose = bool(label)
+        verbose = int(verbose)
 
         self.num = num
         self.label = label
@@ -807,9 +813,9 @@ class Timerit:
         Example:
             >>> import math
             >>> from timerit import Timer
-            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=1)
-            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=2)
-            >>> Timerit(num=10).call(math.factorial, 50).print(verbose=3)
+            >>> Timerit(num=10, verbose=0).call(math.factorial, 50).print(verbose=1)
+            >>> Timerit(num=10, verbose=0).call(math.factorial, 50).print(verbose=2)
+            >>> Timerit(num=10, verbose=0).call(math.factorial, 50).print(verbose=3)
             Timed best=...s, mean=...s
             Timed for: 10 loops, best of 3
                 time per loop: best=...s, mean=...s

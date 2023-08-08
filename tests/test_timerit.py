@@ -2,7 +2,12 @@ from xdoctest.utils import CaptureStdout
 from timerit import Timer, Timerit
 from functools import partial
 import random
+import pytest
 
+@pytest.fixture(autouse=True)
+def env(monkeypatch):
+    monkeypatch.delenv('TIMERIT_VERBOSE', raising=False)
+    yield monkeypatch
 
 class HackedTime(object):
     """
@@ -78,7 +83,7 @@ def test_timerit_verbose():
     assert cap.text.count('foo') == 2
 
 
-def test_hacked_timerit_verbose():
+def test_hacked_timerit_verbose(env):
     import textwrap
     with CaptureStdout(suppress=False) as cap:
         HackedTimerit(3, label='foo', verbose=0).call(lambda: None)
@@ -103,6 +108,41 @@ def test_hacked_timerit_verbose():
 
     with CaptureStdout(suppress=False) as cap:
         HackedTimerit(3, label='foo', verbose=3).call(lambda: None)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        Timing foo for: 3 loops, best of 3
+        Timed foo for: 3 loops, best of 3
+            body took: 126.000 s
+            time per loop: best=42.000 s, mean=42.000 +- 0.0 s
+        ''').strip()
+
+    env.setenv('TIMERIT_VERBOSE', '0')
+    with CaptureStdout(suppress=False) as cap:
+        HackedTimerit(3, label='foo').call(lambda: None)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        ''').strip()
+
+    env.setenv('TIMERIT_VERBOSE', '1')
+    with CaptureStdout(suppress=False) as cap:
+        HackedTimerit(3, label='foo').call(lambda: None)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        Timed best=42.000 s, mean=42.000 +- 0.0 s for foo
+        ''').strip()
+
+    env.setenv('TIMERIT_VERBOSE', '2')
+    with CaptureStdout(suppress=False) as cap:
+        HackedTimerit(3, label='foo').call(lambda: None)
+    assert cap.text.strip() == textwrap.dedent(
+        '''
+        Timed foo for: 3 loops, best of 3
+            time per loop: best=42.000 s, mean=42.000 +- 0.0 s
+        ''').strip()
+
+    env.setenv('TIMERIT_VERBOSE', '3')
+    with CaptureStdout(suppress=False) as cap:
+        HackedTimerit(3, label='foo').call(lambda: None)
     assert cap.text.strip() == textwrap.dedent(
         '''
         Timing foo for: 3 loops, best of 3
