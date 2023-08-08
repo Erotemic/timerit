@@ -38,18 +38,23 @@ from .core import (Timer, Timerit,)
 __all__ = ['Timer', 'Timerit']
 
 
-# Hack to make the package directly usable as an iterator/callable.  Only works
-# for python 3.5 or higher.  See this Stack Overflow post:
-# https://stackoverflow.com/questions/1060796/callable-modules
+# The following code follows [SO1060796]_ to enrich a module with `__call__()` 
+# and `__iter__()` methods for Python versions 3.5 - 3.11.  In Python 3.12 
+# using [PEP713]_ may be preferred.
+#
+# References:
+#     .. [SO1060796] https://stackoverflow.com/questions/1060796/callable-modules
+#     .. [PEP713] https://peps.python.org/pep-0713/
 
 import sys
 
 class TimeritModule(sys.modules[__name__].__class__):
 
     def __iter__(self):
-        yield from Timerit()
+        yield from self()
 
     def __call__(self, *args, **kwargs):
+        kwargs = {'num': None, 'verbose': 2, **kwargs}
         return Timerit(*args, **kwargs)
 
 sys.modules[__name__].__class__ = TimeritModule
