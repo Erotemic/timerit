@@ -54,8 +54,10 @@ class TimeritModule(sys.modules[__name__].__class__):
         yield from self()
 
     def __call__(self, *args, **kwargs):
-        kwargs = {'num': None, 'verbose': 2, **kwargs}
-        return Timerit(*args, **kwargs)
+        from inspect import signature
+        sig = signature(Timerit).bind(*args, **kwargs)
+        kwargs = {'num': None, 'verbose': 2, **sig.arguments}
+        return Timerit(**kwargs)
 
 sys.modules[__name__].__class__ = TimeritModule
 del sys, TimeritModule

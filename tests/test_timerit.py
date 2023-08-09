@@ -78,11 +78,26 @@ def test_timerit_verbose():
     assert cap.text.count('\n') == 4
     assert cap.text.count('foo') == 2
 
+
 def test_timerit_verbose_via_package():
     with CaptureStdout() as cap:
         for _ in timerit:
             pass
-    assert cap.text == ''
+    assert cap.text.count('\n') == 2
+
+    with CaptureStdout() as cap:
+        timerit().call(lambda: None)
+    assert cap.text.count('\n') == 2
+
+    with CaptureStdout() as cap:
+        timerit(3).call(lambda: None)
+    assert cap.text.count('\n') == 2
+    assert cap.text.count('3 loops, best of 3') == 1
+
+    with CaptureStdout() as cap:
+        timerit(num=3).call(lambda: None)
+    assert cap.text.count('\n') == 2
+    assert cap.text.count('3 loops, best of 3') == 1
 
     with CaptureStdout() as cap:
         timerit(3, label='foo', verbose=0).call(lambda: None)
@@ -97,19 +112,19 @@ def test_timerit_verbose_via_package():
         timerit(3, label='foo', verbose=2).call(lambda: None)
     assert cap.text.count('\n') == 2
     assert cap.text.count('foo') == 1
+    assert cap.text.count('3 loops, best of 3') == 1
 
     with CaptureStdout() as cap:
         timerit(3, label='foo', verbose=3).call(lambda: None)
     assert cap.text.count('\n') == 4
     assert cap.text.count('foo') == 2
+    assert cap.text.count('3 loops, best of 3') == 2
 
     with CaptureStdout() as cap:
         timerit(3, label='foo', verbose=4).call(lambda: None)
     assert cap.text.count('\n') == 4
     assert cap.text.count('foo') == 2
-
-
-
+    assert cap.text.count('3 loops, best of 3') == 2
 
 
 def test_hacked_timerit_verbose():
