@@ -282,11 +282,9 @@ class Timerit:
                  disable_gc=True, timer_cls=None, min_duration=0.2):
         """
         Args:
-            num (int):
-                Number of times to run the loop.  By default, the loop will keep
-                running until the amount of time specified by the *min_duration*
-                argument has elapsed.  This argument eliminates this behavior
-                and simply runs the loop the specified number of times.
+            num (int | None):
+                Number of times to run the loop.  If None, then the number of
+                loops is determined by ``min_duration``.
 
             label (str | None):
                 An identifier for printing and differentiating between
@@ -317,11 +315,8 @@ class Timerit:
                 customized one. Mainly useful for testing.
 
             min_duration (float):
-                Continue running the loop until the given amount of time has
-                elapsed.  This makes it easier to run the loop enough times to
-                get a robust measurement without having to know a priori how
-                long each iteration of the loop will take.  Note that this
-                argument is ignored if the *num* argument is not None.
+                Run the loop until the given amount of time has elapsed.
+                Ignored unless ``num is None``.
         """
         if verbose is None:
             verbose = bool(label)
@@ -447,7 +442,7 @@ class Timerit:
                     if self.n_loops >= self.num:
                         break
 
-                # Start background timer (in case the user doesn't use 
+                # Start background timer (in case the user doesn't use
                 # fg_timer)
                 # Yield foreground timer to let the user run a block of code
                 # When we return from yield the user code will have just finished
@@ -893,12 +888,13 @@ class _SetGCState(object):
         else:
             gc.disable()
 
+
 class _SetDisplayHook(object):
     """
-    Context manager to prevent the REPL interpreter from printing the value of 
+    Context manager to prevent the REPL interpreter from printing the value of
     any expressions within the for loop that don't evaluate to None.
 
-    Printing is relatively expensive, and so this behavior can easily lead to 
+    Printing is relatively expensive, and so this behavior can easily lead to
     timings that are much longer than they should be.
     """
     def __enter__(self):
@@ -907,8 +903,6 @@ class _SetDisplayHook(object):
 
     def __exit__(self, ex_type, ex_value, trace):
         sys.displayhook = self._orig_display_hook
-
-
 
 
 def _chunks(seq, size):
