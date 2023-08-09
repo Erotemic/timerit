@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Timerit is a powerful multiline alternative to Python's builtin ``timeit`` module.
 
@@ -28,32 +27,49 @@ a single line, but including more is trivial.
 """
 __version__ = '1.0.2'
 
-__mkinit__ = """
-# Autogen command
-mkinit timerit --nomods --relative
-"""
-
+import sys
 from .core import (Timer, Timerit,)
 
 __all__ = ['Timer', 'Timerit']
 
 
-# The following code follows [SO1060796]_ to enrich a module with `__call__()` 
-# and `__iter__()` methods for Python versions 3.5 - 3.11.  In Python 3.12 
-# using [PEP713]_ may be preferred.
+# The following code follows [SO1060796]_ to enrich a module with `__call__()`
+# and `__iter__()` methods for Python versions 3.5+.  In the future, if
+# [PEP713]_ is accepted then that will be preferred. Note that type checking
+# is ignored here because mypy cannot handle callable modules [MyPy9240]_.
 #
 # References:
 #     .. [SO1060796] https://stackoverflow.com/questions/1060796/callable-modules
 #     .. [PEP713] https://peps.python.org/pep-0713/
+#     .. [MyPy9240] https://github.com/python/mypy/issues/9240
 
-import sys
 
 class TimeritModule(sys.modules[__name__].__class__):  # type: ignore
 
     def __iter__(self):
+        """
+        Yields:
+            Timerit
+        """
         yield from self()
 
     def __call__(self, *args, **kwargs):
+        """
+        Module-level call to create a Timerit instance with interactive defaults.
+
+        Args:
+            *args : passed to :class:`timerit.Timerit`
+            **kwargs : passed to :class:`timerit.Timerit`
+
+        Returns:
+            Timerit
+
+        Example:
+            >>> import math
+            >>> import timerit
+            >>> for _ in timerit:
+            >>>     math.factorial(100)
+        """
         from inspect import signature
         sig = signature(Timerit).bind(*args, **kwargs)
         kwargs = {'num': None, 'verbose': 2, **sig.arguments}

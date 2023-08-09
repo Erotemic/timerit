@@ -5,6 +5,7 @@ from functools import partial
 import timerit
 import random
 
+
 class HackedTime(object):
     """
     Time object that only ever measures increments and not absolute time
@@ -326,9 +327,6 @@ def test_timer_context():
     assert timer.parent.total_time == 200
     assert timer.parent.min() == 2
 
-    
-    
-    
 
 if __name__ == '__main__':
     r"""

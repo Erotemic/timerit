@@ -1,7 +1,7 @@
 
-|GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs| 
+|GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
 
-.. .. |CircleCI| 
+.. .. |CircleCI|
 
 Timerit
 =======
@@ -29,7 +29,7 @@ Installation
 Interactive Use
 ---------------
 
-The ``timerit`` library provides a very succinct API for interactive use:
+The ``timerit`` library provides a succinct API for interactive use:
 
 .. code:: python
 
@@ -46,32 +46,32 @@ Compare to ``timeit``:
     $ python -m timeit 'sum(range(100000))'
     100 loops, best of 5: 2.57 msec per loop
 
-By default, any code within the loop will be repeatedly executed until at least 
+By default, any code within the loop will be repeatedly executed until at least
 200 ms have elapsed.  The timing results are then printed out.
 
 Here's what each of the numbers means:
 
-- "61 loops": The code in the loop was run 61 times before the time limit was 
+- "61 loops": The code in the loop was run 61 times before the time limit was
   reached.
 
-- "best of 3": Consider only the fastest of every three measured times, when 
-  calculating the mean and standard deviation.  The reason for doing this is 
-  that you can get slow times if the something in the background is consuming 
-  resources, so you're generally only interested in the fastest times.  This 
+- "best of 3": Consider only the fastest of every three measured times, when
+  calculating the mean and standard deviation.  The reason for doing this is
+  that you can get slow times if the something in the background is consuming
+  resources, so you're generally only interested in the fastest times.  This
   idea is also described in the timeit__ docs.
 
   __https://docs.python.org/3/library/timeit.html#timeit.Timer.repeat
 
-- "best=2.560 ms": How long the fastest iteration took to run.  For the reasons 
-  described above, this is usually the most consistent number, and the primary 
+- "best=2.560 ms": How long the fastest iteration took to run.  For the reasons
+  described above, this is usually the most consistent number, and the primary
   number you should focus on.
 
-- "mean=3.198 ± 1.0 ms": The mean and the standard deviation of the "best of 3" 
-  iterations.  This statistic is usually not as robust or useful as the fastest 
-  time, but sometimes its helpful to know if there's very high variance.
+- "mean=3.198 ± 1.0 ms": The mean and the standard deviation of the "best of 3"
+  iterations.  This statistic is usually not as robust or useful as the fastest
+  time, but sometimes its helpful to know if there's high variance.
 
-The loop variable can be used as a context manager to only time a part of each 
-loop (e.g. to make the timings more accurate, or to incorporate a setup phase 
+The loop variable can be used as a context manager to only time a part of each
+loop (e.g. to make the timings more accurate, or to incorporate a setup phase
 that is not timed):
 
 .. code:: python
@@ -83,9 +83,9 @@ that is not timed):
     Timed for: 56 loops, best of 3
         time per loop: best=2.560 ms, mean=3.456 ± 1.5 ms
 
-It is also possible to provide arguments controlling how the timing 
-measurements are made.  See the online documentation for more information on 
-these arguments, but the snippet below runs for exactly 100 iterations, instead 
+It is also possible to provide arguments controlling how the timing
+measurements are made.  See the online documentation for more information on
+these arguments, but the snippet below runs for exactly 100 iterations, instead
 of however many fit in 200 ms.
 
 .. code:: python
@@ -97,30 +97,28 @@ of however many fit in 200 ms.
 
 Automatic Import
 ~~~~~~~~~~~~~~~~
-If you want to make ``timerit`` even easier to use interactively, you can move 
-the import to the PYTHONSTARTUP_ file.  If defined, this environment variable 
-gives the path to a python script that will be executed just before every 
+If you want to make ``timerit`` even easier to use interactively, you can move
+the import to the PYTHONSTARTUP_ file.  If defined, this environment variable
+gives the path to a python script that will be executed just before every
 interactive session.  For example:
 
 .. code:: bash
 
-  $ export PYTHONSTARTUP=~/.pythonrc
-  $ cat $PYTHONSTARTUP
-  import timerit
-  $ python
-  Python 3.10.0 (default, Oct 20 2021, 17:23:57) [Clang 12.0.1 ] on linux
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> for _ in timerit:
-  ...     sum(range(100000))
-  ...
-  Timed for: 59 loops, best of 3
-      time per loop: best=2.532 ms, mean=3.309 ± 1.0 ms
+    $ export PYTHONSTARTUP=~/.pythonrc
+    $ cat $PYTHONSTARTUP
+    import timerit
+    $ python
+    >>> for _ in timerit:
+    ...     sum(range(100000))
+    ...
+    Timed for: 59 loops, best of 3
+        time per loop: best=2.532 ms, mean=3.309 ± 1.0 ms
 
 
 Programmatic Use
 ----------------
 
-The timerit library is also provides a `Timerit` class that's meant to be used 
+The timerit library also provides a `Timerit` class that can be used
 programmatically.
 
 .. code:: python
@@ -136,13 +134,13 @@ programmatically.
         time per loop: best=2.064 ms, mean=2.115 ± 0.05 ms
     t1.total_time = 0.4427177629695507
 
-A common pattern is to create a single `Timerit` instance, then to repeatedly 
-"reset" it with different labels to test a number of different algorithms.  The 
-labels assigned in this way will be incorporated into the report strings that 
-the `Timerit` instance produces.  The "Benchmark Recipe" below shows an example 
+A common pattern is to create a single `Timerit` instance, then to repeatedly
+"reset" it with different labels to test a number of different algorithms.  The
+labels assigned in this way will be incorporated into the report strings that
+the `Timerit` instance produces.  The "Benchmark Recipe" below shows an example
 of this pattern.  So do all of the scripts in the ``examples/`` directory.
 
-There is also a simple one-liner that is comparable to IPython magic:
+There is also a simple one-liner that is comparable to timeit's IPython magic:
 
 Compare the timeit version:
 
@@ -159,7 +157,7 @@ With the Timerit version:
     Timed for: 1 loops, best of 1
         time per loop: best=4.828 µs, mean=4.828 ± 0.0 µs
 
-        
+
 How it works
 ------------
 
@@ -185,7 +183,7 @@ Using the with statement inside the loop is nice because you can run untimed
 setup code before you enter the context manager.
 
 In the case where no setup code is required, a more concise version of the
-synax is available. 
+synax is available.
 
 .. code:: python
 
@@ -269,9 +267,9 @@ Benchmark Recipe
         # Your variables may change
         ax = kwplot.figure(fnum=1, doclf=True).gca()
         sns.lineplot(data=data, x='x', y='min', hue='method', marker='o', ax=ax)
-        ax.set_title('Benchmark')
-        ax.set_xlabel('A better x-variable description')
-        ax.set_ylabel('A better y-variable description')
+        ax.set_title('Benchmark Name')
+        ax.set_xlabel('x-variable description')
+        ax.set_ylabel('y-variable description')
 
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/timerit/master.svg?label=Travis%20CI
@@ -288,7 +286,7 @@ Benchmark Recipe
     :target: https://circleci.com/gh/Erotemic/timerit
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/timerit/badge/?version=latest
     :target: http://timerit.readthedocs.io/en/latest/
-.. |CodeQuality| image:: https://api.codacy.com/project/badge/Grade/fdcedca723f24ec4be9c7067d91cb43b 
+.. |CodeQuality| image:: https://api.codacy.com/project/badge/Grade/fdcedca723f24ec4be9c7067d91cb43b
     :target: https://www.codacy.com/manual/Erotemic/timerit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/timerit&amp;utm_campaign=Badge_Grade
 .. |GithubActions| image:: https://github.com/Erotemic/timerit/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/timerit/actions?query=branch%3Amain

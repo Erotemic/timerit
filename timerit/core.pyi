@@ -42,24 +42,26 @@ class Timer:
 
 
 class Timerit:
-    num: int
+    measures: dict
+    num: int | None
     label: str | None
     bestof: int
     unit: str | None
     verbose: int | None
+    min_duration: float
     times: Incomplete
     total_time: int
     n_loops: Incomplete
-    measures: Incomplete
 
     def __init__(self,
-                 num: int = 1,
+                 num: int | None = 1,
                  label: str | None = None,
                  bestof: int = 3,
                  unit: str | None = None,
                  verbose: int | None = None,
                  disable_gc: bool = True,
-                 timer_cls: None | Any = None) -> None:
+                 timer_cls: None | Any = None,
+                 min_duration: float = 0.2) -> None:
         ...
 
     def reset(self,
@@ -70,7 +72,7 @@ class Timerit:
     def call(self, func, *args, **kwargs) -> Timerit:
         ...
 
-    def __iter__(self):
+    def __iter__(self) -> Timer:
         ...
 
     def robust_times(self) -> List[float]:
@@ -109,6 +111,15 @@ class _SetGCState:
 
     def __init__(self, enable) -> None:
         ...
+
+    def __enter__(self) -> None:
+        ...
+
+    def __exit__(self, ex_type, ex_value, trace) -> None:
+        ...
+
+
+class _SetDisplayHook:
 
     def __enter__(self) -> None:
         ...
