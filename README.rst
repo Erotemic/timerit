@@ -118,7 +118,7 @@ interactive session.  For example:
 Programmatic Use
 ----------------
 
-The timerit library also provides a `Timerit` class that can be used
+The timerit library also provides a ``Timerit`` class that can be used
 programmatically.
 
 .. code:: python
@@ -134,13 +134,13 @@ programmatically.
         time per loop: best=2.064 ms, mean=2.115 ± 0.05 ms
     t1.total_time = 0.4427177629695507
 
-A common pattern is to create a single `Timerit` instance, then to repeatedly
+A common pattern is to create a single ``Timerit`` instance, then to repeatedly
 "reset" it with different labels to test a number of different algorithms.  The
 labels assigned in this way will be incorporated into the report strings that
-the `Timerit` instance produces.  The "Benchmark Recipe" below shows an example
+the ``Timerit`` instance produces.  The "Benchmark Recipe" below shows an example
 of this pattern.  So do all of the scripts in the ``examples/`` directory.
 
-There is also a simple one-liner that is comparable to timeit's IPython magic:
+There is also a simple one-liner that is comparable to ``timeit``'s IPython magic:
 
 Compare the timeit version:
 
@@ -183,7 +183,7 @@ Using the with statement inside the loop is nice because you can run untimed
 setup code before you enter the context manager.
 
 In the case where no setup code is required, a more concise version of the
-synax is available.
+syntax is available.
 
 .. code:: python
 
