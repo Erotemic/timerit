@@ -48,7 +48,7 @@ __all__ = ['Timer', 'Timerit']
 
 import sys
 
-class TimeritModule(sys.modules[__name__].__class__):
+class TimeritModule(sys.modules[__name__].__class__):  # type: ignore
 
     def __iter__(self):
         yield from self()
