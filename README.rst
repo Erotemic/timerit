@@ -26,31 +26,107 @@ Installation
     pip install timerit
 
 
-Examples
---------
+Interactive Use
+---------------
 
-The quick and dirty way just requires one indent.
-
-.. code:: python
-
-    >>> import math
-    >>> from timerit import Timerit
-    >>> for _ in Timerit(num=200, verbose=2):
-    >>>     math.factorial(10000)
-    Timing for 200 loops
-    Timed for: 200 loops, best of 3
-        time per loop: best=2.469 ms, mean=2.49 ± 0.037 ms
-
-Use the loop variable as a context manager for more accurate timings or
-to incorporate a setup phase that is not timed. You can also access
-properties of the ``Timerit`` class to programmatically use results.
+The ``timerit`` library provides a very succinct API for interactive use:
 
 .. code:: python
 
-    >>> import math
-    >>> from timerit import Timerit
-    >>> t1 = Timerit(num=200, verbose=2)
-    >>> for timer in t1:
+    >>> import timerit
+    >>> for _ in timerit:
+    ...     sum(range(100000))
+    Timed for: 61 loops, best of 3
+        time per loop: best=2.560 ms, mean=3.198 ± 1.0 ms
+
+Compare to ``timeit``:
+
+.. code:: bash
+
+    $ python -m timeit 'sum(range(100000))'
+    100 loops, best of 5: 2.57 msec per loop
+
+By default, any code within the loop will be repeatedly executed until at least 
+200 ms have elapsed.  The timing results are then printed out.
+
+Here's what each of the numbers means:
+
+- "61 loops": The code in the loop was run 61 times before the time limit was 
+  reached.
+
+- "best of 3": Consider only the fastest of every three measured times, when 
+  calculating the mean and standard deviation.  The reason for doing this is 
+  that you can get slow times if the something in the background is consuming 
+  resources, so you're generally only interested in the fastest times.  This 
+  idea is also described in the timeit__ docs.
+
+  __https://docs.python.org/3/library/timeit.html#timeit.Timer.repeat
+
+- "best=2.560 ms": How long the fastest iteration took to run.  For the reasons 
+  described above, this is usually the most consistent number, and the primary 
+  number you should focus on.
+
+- "mean=3.198 ± 1.0 ms": The mean and the standard deviation of the "best of 3" 
+  iterations.  This statistic is usually not as robust or useful as the fastest 
+  time, but sometimes its helpful to know if there's very high variance.
+
+The loop variable can be used as a context manager to only time a part of each 
+loop (e.g. to make the timings more accurate, or to incorporate a setup phase 
+that is not timed):
+
+.. code:: python
+
+    >>> for timer in timerit:
+    ...     n = 100 * 1000
+    ...     with timer:
+    ...         sum(range(n))
+    Timed for: 56 loops, best of 3
+        time per loop: best=2.560 ms, mean=3.456 ± 1.5 ms
+
+It is also possible to provide arguments controlling how the timing 
+measurements are made.  See the online documentation for more information on 
+these arguments, but the snippet below runs for exactly 100 iterations, instead 
+of however many fit in 200 ms.
+
+.. code:: python
+
+    >>> for _ in timerit(num=100):
+    ...     sum(range(100000))
+    Timed for: 100 loops, best of 3
+        time per loop: best=2.560 ms, mean=3.057 ± 1.2 ms
+
+Automatic Import
+~~~~~~~~~~~~~~~~
+If you want to make ``timerit`` even easier to use interactively, you can move 
+the import to the PYTHONSTARTUP_ file.  If defined, this environment variable 
+gives the path to a python script that will be executed just before every 
+interactive session.  For example:
+
+.. code:: bash
+
+  $ export PYTHONSTARTUP=~/.pythonrc
+  $ cat $PYTHONSTARTUP
+  import timerit
+  $ python
+  Python 3.10.0 (default, Oct 20 2021, 17:23:57) [Clang 12.0.1 ] on linux
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>> for _ in timerit:
+  ...     sum(range(100000))
+  ...
+  Timed for: 59 loops, best of 3
+      time per loop: best=2.532 ms, mean=3.309 ± 1.0 ms
+
+
+Programmatic Use
+----------------
+
+The timerit library is also provides a `Timerit` class that's meant to be used 
+programmatically.
+
+.. code:: python
+
+    >>> import math, timerit
+    >>> for timer in timerit:
     >>>     setup_vars = 10000
     >>>     with timer:
     >>>         math.factorial(setup_vars)
@@ -59,6 +135,12 @@ properties of the ``Timerit`` class to programmatically use results.
     Timed for: 200 loops, best of 3
         time per loop: best=2.064 ms, mean=2.115 ± 0.05 ms
     t1.total_time = 0.4427177629695507
+
+A common pattern is to create a single `Timerit` instance, then to repeatedly 
+"reset" it with different labels to test a number of different algorithms.  The 
+labels assigned in this way will be incorporated into the report strings that 
+the `Timerit` instance produces.  The "Benchmark Recipe" below shows an example 
+of this pattern.  So do all of the scripts in the ``examples/`` directory.
 
 There is also a simple one-liner that is comparable to IPython magic:
 
@@ -210,3 +292,6 @@ Benchmark Recipe
     :target: https://www.codacy.com/manual/Erotemic/timerit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/timerit&amp;utm_campaign=Badge_Grade
 .. |GithubActions| image:: https://github.com/Erotemic/timerit/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/timerit/actions?query=branch%3Amain
+
+.. _PYTHONSTARTUP: https://docs.python.org/3/using/cmdline.html?highlight=pythonstartup#envvar-PYTHONSTARTUP
+
