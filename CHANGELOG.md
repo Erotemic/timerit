@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+* Add min_duration argument
+
 ### Changed
 * Disable REPL printing during profiling
 
