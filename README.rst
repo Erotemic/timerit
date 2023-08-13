@@ -1,7 +1,6 @@
 
 |GithubActions| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
 
-.. .. |CircleCI|
 
 Timerit
 =======
@@ -10,6 +9,14 @@ A powerful multiline alternative to Python's builtin ``timeit`` module.
 
 Docs are published at https://timerit.readthedocs.io/en/latest/ but this README
 and code comments contain a walkthrough.
+
++---------------+--------------------------------------------+
+| Github        | https://github.com/Erotemic/timerit        |
++---------------+--------------------------------------------+
+| Pypi          | https://pypi.org/project/timerit           |
++---------------+--------------------------------------------+
+| ReadTheDocs   | https://timerit.readthedocs.io/en/latest/  |
++---------------+--------------------------------------------+
 
 Description
 -----------
@@ -21,7 +28,7 @@ convert to a single line.
 Installation
 ------------
 
-::
+.. code:: bash
 
     pip install timerit
 
@@ -36,37 +43,36 @@ The ``timerit`` library provides a succinct API for interactive use:
     >>> import timerit
     >>> for _ in timerit:
     ...     sum(range(100000))
-    Timed for: 61 loops, best of 3
-        time per loop: best=2.560 ms, mean=3.198 ± 1.0 ms
+    Timed for: 288 loops, best of 5
+        time per loop: best=616.740 µs, mean=668.933 ± 124.2 µs
 
 Compare to ``timeit``:
 
 .. code:: bash
 
     $ python -m timeit 'sum(range(100000))'
-    100 loops, best of 5: 2.57 msec per loop
+    500 loops, best of 5: 721 usec per loop
 
 By default, any code within the loop will be repeatedly executed until at least
 200 ms have elapsed.  The timing results are then printed out.
 
 Here's what each of the numbers means:
 
-- "61 loops": The code in the loop was run 61 times before the time limit was
+- "288 loops": The code in the loop was run 288 times before the time limit was
   reached.
 
-- "best of 3": Consider only the fastest of every three measured times, when
+- "best of 5": Consider only the fastest of every 5 measured times, when
   calculating the mean and standard deviation.  The reason for doing this is
   that you can get slow times if the something in the background is consuming
   resources, so you're generally only interested in the fastest times.  This
-  idea is also described in the timeit__ docs.
+  idea is also described in the
+  `timeit <https://docs.python.org/3/library/timeit.html#timeit.Timer.repeat>`_ docs.
 
-  __https://docs.python.org/3/library/timeit.html#timeit.Timer.repeat
-
-- "best=2.560 ms": How long the fastest iteration took to run.  For the reasons
+- "best=616.740 µs": How long the fastest iteration took to run.  For the reasons
   described above, this is usually the most consistent number, and the primary
   number you should focus on.
 
-- "mean=3.198 ± 1.0 ms": The mean and the standard deviation of the "best of 3"
+- "mean=668.933 ± 124.2 µs": The mean and the standard deviation of the "best of 5"
   iterations.  This statistic is usually not as robust or useful as the fastest
   time, but sometimes its helpful to know if there's high variance.
 
@@ -80,8 +86,8 @@ that is not timed):
     ...     n = 100 * 1000
     ...     with timer:
     ...         sum(range(n))
-    Timed for: 56 loops, best of 3
-        time per loop: best=2.560 ms, mean=3.456 ± 1.5 ms
+    Timed for: 318 loops, best of 5
+        time per loop: best=616.673 µs, mean=617.545 ± 0.9 µs
 
 It is also possible to provide arguments controlling how the timing
 measurements are made.  See the online documentation for more information on
@@ -92,8 +98,9 @@ of however many fit in 200 ms.
 
     >>> for _ in timerit(num=100):
     ...     sum(range(100000))
-    Timed for: 100 loops, best of 3
-        time per loop: best=2.560 ms, mean=3.057 ± 1.2 ms
+    Timed for: 100 loops, best of 5
+        time per loop: best=616.866 µs, mean=619.120 ± 5.3 µs
+
 
 Automatic Import
 ~~~~~~~~~~~~~~~~
