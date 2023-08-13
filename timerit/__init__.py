@@ -72,7 +72,7 @@ class TimeritModule(sys.modules[__name__].__class__):  # type: ignore
         """
         from inspect import signature
         sig = signature(Timerit).bind(*args, **kwargs)
-        kwargs = {'num': None, 'verbose': 2, **sig.arguments}
+        kwargs = {'num': None, 'verbose': 2, 'bestof': 5, **sig.arguments}
         return Timerit(**kwargs)
 
 sys.modules[__name__].__class__ = TimeritModule
