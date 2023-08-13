@@ -177,6 +177,7 @@ intersphinx_mapping = {
     'xdoctest': ('https://xdoctest.readthedocs.io/en/latest/', None),
     'networkx': ('https://networkx.org/documentation/stable/', None),
     'scriptconfig': ('https://scriptconfig.readthedocs.io/en/latest/', None),
+    'rich': ('https://rich.readthedocs.io/en/latest/', None),
 
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     # 'pytest._pytest.doctest': ('https://docs.pytest.org/en/latest/_modules/_pytest/doctest.html', None),
