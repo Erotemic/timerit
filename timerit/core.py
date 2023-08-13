@@ -421,6 +421,12 @@ class Timerit:
         return self
 
     def __iter__(self):
+        """
+        Yields:
+            Timer:
+                a timer context manager which can optionally be used to
+                localize the timed part of each iteration.
+        """
         if self.verbose >= 3:
             print(self._status_line())
 
