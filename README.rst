@@ -286,6 +286,8 @@ Related Work
 
 * `line_profiler <https://github.com/pyutils/line_profiler>`_: Line-by-line profiling.
 
+* `ubelt <https://github.com/Erotemic/ubelt>`_: This library was original developed as a component of ubelt, but has since become a standalone module.
+
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/timerit/master.svg?label=Travis%20CI
    :target: https://travis-ci.org/Erotemic/timerit?branch=master
