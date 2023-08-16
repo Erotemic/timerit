@@ -5,7 +5,7 @@
 Timerit
 =======
 
-A powerful multiline alternative to Python's builtin ``timeit`` module.
+A powerful multiline alternative to Python's builtin `timeit <https://docs.python.org/3/library/timeit.html>`_ module.
 
 Docs are published at https://timerit.readthedocs.io/en/latest/ but this README
 and code comments contain a walkthrough.
@@ -277,6 +277,14 @@ Benchmark Recipe
         ax.set_title('Benchmark Name')
         ax.set_xlabel('x-variable description')
         ax.set_ylabel('y-variable description')
+
+
+Related Work
+============
+
+* `timeit <https://docs.python.org/3/library/timeit.html>`_: The builtin timeit module for profiling single statements.
+
+* `line_profiler <https://github.com/pyutils/line_profiler>`_: Line-by-line profiling.
 
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/timerit/master.svg?label=Travis%20CI
