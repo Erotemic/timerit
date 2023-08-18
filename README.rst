@@ -66,7 +66,7 @@ Here's what each of the numbers means:
   that you can get slow times if the something in the background is consuming
   resources, so you're generally only interested in the fastest times.  This
   idea is also described in the
-  `timeit <https://docs.python.org/3/library/timeit.html#timeit.Timer.repeat>`_ docs.
+  `timeit docs <https://docs.python.org/3/library/timeit.html#timeit.Timer.repeat>`_.
 
 - "best=616.740 µs": How long the fastest iteration took to run.  For the reasons
   described above, this is usually the most consistent number, and the primary
