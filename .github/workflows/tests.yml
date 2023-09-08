@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Python 3.11 for linting
       uses: actions/setup-python@v4.6.1
       with:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Python 3.11
       uses: actions/setup-python@v4.6.1
       with:
@@ -119,7 +119,7 @@ jobs:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
       if: runner.os == 'Linux' && matrix.arch != 'auto'
@@ -283,7 +283,7 @@ jobs:
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
@@ -374,7 +374,7 @@ jobs:
     - test_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
       name: Download wheels and sdist
       with:
@@ -418,7 +418,7 @@ jobs:
     - test_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
       name: Download wheels and sdist
       with:
