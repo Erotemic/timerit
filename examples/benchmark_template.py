@@ -1,3 +1,11 @@
+"""
+This code is based on a template that lives in:
+    https://github.com/Erotemic/timerit/blob/main/examples/benchmark_template.py
+
+    Or typically on a dev machine in
+
+    ~/code/timerit/examples/benchmark_template.py
+"""
 
 
 def benchmark_template():
