@@ -69,7 +69,7 @@ def benchmark_template():
         'size': ['zparam'],
     }
     group_labels['hue'] = list(
-        (ub.oset(basis) - {xlabel}) - set.union(*map(set, group_labels.values())))
+        (ub.oset(basis) - {xlabel}) - set.union(set(), *map(set, group_labels.values())))
     grid_iter = list(ub.named_product(basis))
 
     # For each variation of your experiment, create a row.
