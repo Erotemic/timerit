@@ -1,16 +1,128 @@
 [build-system]
-requires = [ "setuptools>=41.0.1",]
 build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools>=41.0.1",
+  "setuptools>=77",
+]
+
+[project]
+name = "timerit"
+description = "A powerful multiline alternative to timeit"
+license = "Apache-2.0"
+license-files = [
+  "LICENSE",
+]
+authors = [ { name = "Jon Crall", email = "erotemic@gmail.com" } ]
+requires-python = ">=3.6"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+]
+dynamic = [
+  "dependencies",
+  "optional-dependencies",
+  "readme",
+  "version",
+]
+urls.Homepage = "https://github.com/Erotemic/timerit"
+
+[tool.setuptools]
+include-package-data = true
+dynamic.dependencies.file = [
+  "requirements/runtime.txt",
+]
+dynamic.optional-dependencies.all.file = [
+  "requirements/optional.txt",
+]
+dynamic.optional-dependencies.docs.file = [
+  "requirements/docs.txt",
+]
+dynamic.optional-dependencies.optional.file = [
+  "requirements/optional.txt",
+]
+dynamic.optional-dependencies.tests.file = [
+  "requirements/tests.txt",
+]
+dynamic.readme.file = [
+  "README.rst",
+]
+dynamic.readme.content-type = "text/x-rst"
+dynamic.version.attr = "timerit.__version__"
+package-data."*" = [
+  "requirements/*.txt",
+]
+package-data.timerit = [
+  "py.typed",
+]
+packages.find.where = [
+  ".",
+]
+packages.find.include = [
+  "timerit*",
+]
 
 [tool.mypy]
 ignore_missing_imports = true
 
+[tool.pytest]
+ini_options.addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=dev --ignore-glob=docs"
+ini_options.norecursedirs = ".git ignore build __pycache__ dev _skbuild docs"
+ini_options.filterwarnings = [
+  "default",
+  "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning",
+  "ignore:.*Define the __nice__ method for.*:Warning",
+  "ignore:.*private pytest class or function.*:Warning",
+]
+
+[tool.coverage]
+run.branch = true
+report.exclude_lines = [
+  ".*  # nocover",
+  ".*  # pragma: no cover",
+  ".*if six.PY2:",
+  "^ *pass *$",
+  "^ *raise",
+  "def __repr__",
+  "if __name__ == .__main__.:",
+  "if _debug:",
+  "if 0:",
+  "if trace is not None",
+  "pragma: no cover",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "verbose = .*",
+]
+report.omit = [
+  "*/setup.py",
+  "timerit/__main__.py",
+]
+
 [tool.xcookie]
-tags = [ "erotemic", "purepy", "github",]
+tags = [
+  "erotemic",
+  "purepy",
+  "github",
+]
 mod_name = "timerit"
 repo_name = "timerit"
 rel_mod_parent_dpath = "."
-os = [ "linux", "osx", "win",]
+os = [
+  "linux",
+  "osx",
+  "win",
+]
 min_python = 3.6
 version = "{mod_dpath}/__init__.py::__version__"
 url = "https://github.com/Erotemic/timerit"
@@ -20,15 +132,8 @@ description = "A powerful multiline alternative to timeit"
 license = "Apache 2"
 dev_status = "stable"
 typed = true
-
-[tool.pytest.ini_options]
-addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=dev --ignore-glob=docs"
-norecursedirs = ".git ignore build __pycache__ dev _skbuild"
-filterwarnings = [ "default", "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning", "ignore:.*Define the __nice__ method for.*:Warning", "ignore:.*private pytest class or function.*:Warning",]
-
-[tool.coverage.run]
-branch = true
-
-[tool.coverage.report]
-exclude_lines = [ "pragma: no cover", ".*  # pragma: no cover", ".*  # nocover", "def __repr__", "raise AssertionError", "raise NotImplementedError", "if 0:", "if trace is not None", "verbose = .*", "^ *raise", "^ *pass *$", "if _debug:", "if __name__ == .__main__.:", ".*if six.PY2:",]
-omit = [ "timerit/__main__.py", "*/setup.py",]
+workspace_members = []
+workspace_sync_versions = false
+use_setup_py = false
+use_pyproject_requirements = false
+enable_gpg = true
