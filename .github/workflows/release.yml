@@ -31,8 +31,8 @@ jobs:
     - name: Build sdist
       shell: bash
       run: |-
-        python -m pip install pip -U
-        python -m pip install setuptools>=77 wheel build twine
+        python -m pip install pip uv -U
+        python -m uv pip install setuptools>=77 wheel build twine
         python -m build --sdist --outdir wheelhouse
         python -m twine check ./wheelhouse/timerit*.tar.gz
     - name: Show built files
@@ -68,8 +68,8 @@ jobs:
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip install pip -U
-        python -m pip install setuptools>=77 wheel build twine
+        python -m pip install pip uv -U
+        python -m uv pip install setuptools>=77 wheel build twine
         python -m build --wheel --outdir wheelhouse
         python -m twine check ./wheelhouse/timerit*.whl
     - name: Show built files
@@ -127,7 +127,7 @@ jobs:
         if [[ "$IMPORTED_FPR" != "$GPG_KEYID" ]]; then echo "ERROR: imported GPG fingerprint $IMPORTED_FPR does not match pinned $GPG_KEYID"; exit 1; fi
         echo "GPG fingerprint verified: $IMPORTED_FPR"
         VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'timerit/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
-        python -m pip install pip -U
+        python -m pip install pip uv -U
         python -m pip install packaging twine -U
         python -m pip install urllib3 requests[security]
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
@@ -223,7 +223,7 @@ jobs:
         if [[ "$IMPORTED_FPR" != "$GPG_KEYID" ]]; then echo "ERROR: imported GPG fingerprint $IMPORTED_FPR does not match pinned $GPG_KEYID"; exit 1; fi
         echo "GPG fingerprint verified: $IMPORTED_FPR"
         VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'timerit/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
-        python -m pip install pip -U
+        python -m pip install pip uv -U
         python -m pip install packaging twine -U
         python -m pip install urllib3 requests[security]
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"

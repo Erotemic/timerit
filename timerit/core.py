@@ -47,6 +47,11 @@ Example:
     tic('Timer demo!')
     ...toc('Timer demo!')=0.1959s
 """
+from __future__ import annotations
+
+from collections.abc import Callable, Iterator
+from typing import Any
+
 import time
 import sys
 import itertools as it
@@ -55,14 +60,8 @@ from collections import defaultdict, OrderedDict
 __all__ = ['Timer', 'Timerit']
 
 
-# If sys.version >= 3.7, then use time.perf_counter_ns
-if sys.version_info[0:2] >= (3, 7):
-    if hasattr(time, 'perf_counter_ns'):
-        default_counter = 'perf_counter_ns'
-    else:
-        default_counter = 'perf_counter'
-else:
-    default_counter = 'perf_counter'
+# Python 3.10+ always provides perf_counter_ns.
+default_counter: str = 'perf_counter_ns'
 
 
 class Timer:
@@ -113,7 +112,9 @@ class Timer:
 
     _default_counter = default_counter
 
-    def __init__(self, label='', verbose=None, newline=True, counter='auto'):
+    def __init__(self, label: str = '', verbose: int | None = None,
+                 newline: bool = True,
+                 counter: str | Callable[[], int | float] = 'auto') -> None:
         """
         Args:
             label (str):
@@ -128,8 +129,8 @@ class Timer:
                 Defaults to True.
 
             counter (str):
-                Can be 'auto', 'perf_counter', or 'perf_counter_ns' (if Python
-                3.7+). Defaults to auto.
+                Can be 'auto', 'perf_counter', or 'perf_counter_ns'. Defaults to
+                auto.
         """
         if verbose is None:
             verbose = bool(label)
@@ -140,8 +141,9 @@ class Timer:
         # self.elapsed = -1
         self._raw_elapsed = -1
         self._raw_tstart = -1
-        self.write = sys.stdout.write
-        self.flush = sys.stdout.flush
+        self.write: Callable[[str], int] = sys.stdout.write
+        self.flush: Callable[[], None] = sys.stdout.flush
+        self.parent: Timerit | None = None
 
         if isinstance(counter, str):
             if counter == 'auto':
@@ -164,7 +166,7 @@ class Timer:
         self._time = _time
 
     @property
-    def tstart(self):
+    def tstart(self) -> float:
         """
         Returns:
             float: The timestamp of the last tic in seconds.
@@ -172,21 +174,21 @@ class Timer:
         return self._raw_tstart * self._to_seconds
 
     @property
-    def elapsed(self):
+    def elapsed(self) -> float:
         """
         Returns:
             float: The elapsed time duration in seconds
         """
         return self._raw_elapsed * self._to_seconds
 
-    def _raw_tic(self):
+    def _raw_tic(self) -> None:
         self._raw_tstart = self._time()
 
-    def _raw_toc(self):
+    def _raw_toc(self) -> int | float:
         self._raw_elapsed = raw_elapsed = self._time() - self._raw_tstart
         return raw_elapsed
 
-    def tic(self):
+    def tic(self) -> Timer:
         """
         Starts the timer.
 
@@ -202,7 +204,7 @@ class Timer:
         self._raw_tic()
         return self
 
-    def toc(self):
+    def toc(self) -> float:
         """
         Stops the timer.
 
@@ -216,11 +218,11 @@ class Timer:
             self.flush()
         return elapsed
 
-    def __enter__(self):
+    def __enter__(self) -> Timer:
         self.tic()
         return self
 
-    def __exit__(self, ex_type, ex_value, trace):
+    def __exit__(self, ex_type: Any, ex_value: Any, trace: Any) -> bool | None:
         self.toc()
         if trace is not None:
             return False
@@ -278,8 +280,11 @@ class Timerit:
     _default_precision = 3
     _default_precision_type = 'f'  # could also be reasonably be 'g' or ''
 
-    def __init__(self, num=1, label=None, bestof=3, unit=None, verbose=None,
-                 disable_gc=True, timer_cls=None, min_duration=0.2):
+    def __init__(self, num: int | None = 1, label: str | None = None,
+                 bestof: int = 3, unit: str | None = None,
+                 verbose: int | None = None, disable_gc: bool = True,
+                 timer_cls: Callable[..., Timer] | None = None,
+                 min_duration: float = 0.2) -> None:
         """
         Args:
             num (int | None):
@@ -328,18 +333,20 @@ class Timerit:
         self.verbose = verbose
         self.min_duration = min_duration
 
-        self.times = []
-        self.total_time = 0
+        self.times: list[float] = []
+        self.total_time: float | None = 0.0
 
         # self._raw_times = []
         # self._raw_total = None
-        self.n_loops = None
+        self.n_loops: int | None = None
 
         # Keep track of measures, does not change on reset by default
-        self.measures = defaultdict(dict)
+        self.measures: dict[str, dict[str | None, float]] = defaultdict(dict)
 
         # Internal variables
-        self._timer_cls = self._default_timer_cls if timer_cls is None else timer_cls
+        self._timer_cls: Callable[..., Timer] = (
+            self._default_timer_cls if timer_cls is None else timer_cls
+        )
         self._asciimode = self._default_asciimode
         self._precision = self._default_precision
         self._precision_type = self._default_precision_type
@@ -353,7 +360,7 @@ class Timerit:
         # with the for loop.
         self._fg_timer.parent = self
 
-    def reset(self, label=None, measures=False):
+    def reset(self, label: str | None = None, measures: bool = False) -> Timerit:
         """
         Clears all measurements, allowing the object to be reused
 
@@ -397,7 +404,7 @@ class Timerit:
     #         return None
     #     return [t * self._to_seconds for t in self._raw_times]
 
-    def call(self, func, *args, **kwargs):
+    def call(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Timerit:
         """
         Alternative way to time a simple function call using condensed syntax.
 
@@ -420,7 +427,7 @@ class Timerit:
                 func(*args, **kwargs)
         return self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Timer]:
         """
         Yields:
             Timer:
@@ -431,7 +438,7 @@ class Timerit:
             print(self._status_line())
 
         self.n_loops = 0
-        self.total_time = 0
+        self.total_time = 0.0
 
         bg_timer = self._bg_timer
         fg_timer = self._fg_timer
@@ -442,6 +449,7 @@ class Timerit:
             while True:
 
                 if self.num is None:
+                    assert self.total_time is not None
                     if self.total_time > self.min_duration:
                         break
                 else:
@@ -463,6 +471,7 @@ class Timerit:
                     block_time = bg_time  # lower precision?
                 # record timings
                 self.times.append(block_time)
+                assert self.total_time is not None
                 self.total_time += block_time
                 self.n_loops += 1
         # Timing complete, print results
@@ -475,7 +484,7 @@ class Timerit:
         if self.verbose > 0:
             self.print(self.verbose)
 
-    def _record_measurement(self):
+    def _record_measurement(self) -> dict[str, dict[str | None, float]]:
         """
         Saves the current time measurements for the current labels.
         """
@@ -486,7 +495,7 @@ class Timerit:
         measures['mean+std'][self.label] = self.mean() + self.std()
         return measures
 
-    def robust_times(self):
+    def robust_times(self) -> list[float]:
         """
         Returns a subset of `self.times` where outliers have been rejected.
 
@@ -498,7 +507,7 @@ class Timerit:
         return times
 
     @property
-    def rankings(self):
+    def rankings(self) -> dict[str, dict[str | None, float]]:
         """
         Orders each list of measurements by ascending time.
 
@@ -562,13 +571,13 @@ class Timerit:
             c is 11.25% faster than b
         """
         rankings = {
-            k: OrderedDict(sorted(d.items(), key=lambda kv: kv[1]))
+            k: dict(sorted(d.items(), key=lambda kv: kv[1]))
             for k, d in self.measures.items()
         }
         return rankings
 
     @property
-    def consistency(self):
+    def consistency(self) -> float:
         """"
         Take the hamming distance between the preference profiles to as a
         measure of consistency.
@@ -593,7 +602,7 @@ class Timerit:
         score = 1.0 - hamming_ave
         return score
 
-    def min(self):
+    def min(self) -> float:
         """
         The best time overall.
 
@@ -622,7 +631,7 @@ class Timerit:
         """
         return min(self.times)
 
-    def mean(self):
+    def mean(self) -> float:
         """
         The mean of the best results of each trial.
 
@@ -645,7 +654,7 @@ class Timerit:
         mean = sum(times) / len(times)
         return mean
 
-    def std(self):
+    def std(self) -> float:
         """
         The standard deviation of the best results of each trial.
 
@@ -669,7 +678,7 @@ class Timerit:
         std = math.sqrt(sum((t - mean) ** 2 for t in times) / len(times))
         return std
 
-    def _seconds_str(self):
+    def _seconds_str(self) -> str:
         """
         Returns:
             str: Human readable text
@@ -701,7 +710,7 @@ class Timerit:
                                  pr1=pr1, pr2=pr2)
         return unit_str
 
-    def _status_line(self):
+    def _status_line(self) -> str:
         """
         Text indicating what has been / is being done.
 
@@ -741,7 +750,7 @@ class Timerit:
 
         return line
 
-    def summary(self, stat='mean'):
+    def summary(self, stat: str = 'mean') -> str:
         """
         Summarize a timerit session.
 
@@ -776,14 +785,14 @@ class Timerit:
         prev_key = None
         prev_val = None
         for key, val in list(method_to_value.items())[::-1]:
-            if prev_key:
+            if prev_key is not None and prev_val is not None:
                 pcnt = Relative.percent_faster(val, prev_val)
                 lines.append('{} is {:0.2f}% faster than {}'.format(key, pcnt, prev_key))
             prev_key = key
             prev_val = val
         return '\n'.join(lines)
 
-    def report(self, verbose=1):
+    def report(self, verbose: int = 1) -> str:
         """
         Creates a human readable report
 
@@ -813,6 +822,7 @@ class Timerit:
             # use a multi-line format for high verbosity
             lines.append(self._status_line())
             if verbose >= 3:
+                assert self.total_time is not None
                 unit, mag = _choose_unit(self.total_time, self.unit,
                                          self._asciimode)
                 lines.append('    body took: {total:.{pr}{t}} {unit}'.format(
@@ -830,7 +840,7 @@ class Timerit:
         text = '\n'.join(lines)
         return text
 
-    def print(self, verbose=1):
+    def print(self, verbose: int = 1) -> None:
         """
         Prints human readable report using the print function
 
@@ -875,11 +885,11 @@ class _SetGCState(object):
         >>>     assert not gc.isenabled()
         >>> assert gc.isenabled() == prev
     """
-    def __init__(self, enable):
+    def __init__(self, enable: bool) -> None:
         self.enable = enable
         self.prev = None
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         import gc
         self.prev = gc.isenabled()
         if self.enable:
@@ -887,7 +897,7 @@ class _SetGCState(object):
         else:
             gc.disable()
 
-    def __exit__(self, ex_type, ex_value, trace):
+    def __exit__(self, ex_type: Any, ex_value: Any, trace: Any) -> None:
         import gc
         if self.prev:
             gc.enable()
@@ -903,20 +913,21 @@ class _SetDisplayHook(object):
     Printing is relatively expensive, and so this behavior can easily lead to
     timings that are much longer than they should be.
     """
-    def __enter__(self):
+    def __enter__(self) -> None:
         self._orig_display_hook = sys.displayhook
         sys.displayhook = lambda x: None
 
-    def __exit__(self, ex_type, ex_value, trace):
+    def __exit__(self, ex_type: Any, ex_value: Any, trace: Any) -> None:
         sys.displayhook = self._orig_display_hook
 
 
-def _chunks(seq, size):
+def _chunks(seq: list[float], size: int) -> Iterator[list[float]]:
     """ simple (lighter?) two-line alternative to :func:`ubelt.chunks` """
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
-def _choose_unit(value, unit=None, asciimode=None):
+def _choose_unit(value: float, unit: str | None = None,
+                 asciimode: bool | None = None) -> tuple[str, float]:
     """
     Finds a good unit to print seconds in.
 
@@ -952,7 +963,7 @@ def _choose_unit(value, unit=None, asciimode=None):
     return suffix, mag
 
 
-def _trychar(char, fallback, asciimode=None):  # nocover
+def _trychar(char: str, fallback: str, asciimode: bool | None = None) -> str:  # nocover
     """
     Logic from IPython timeit to handle terminals that can't show mu.
 
