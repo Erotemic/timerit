@@ -30,7 +30,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import Any
 
-__version__ = '1.1.1'
+__version__ = '1.2.0'
 
 import sys
 from .core import (Timer, Timerit,)
