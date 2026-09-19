@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 1.2.0 - Unreleased
 
 
+### Added
+
+* Added experimental `timerit.benchmarker.Benchmarker` helper for parameterized benchmark grids
+
 ### Changed
 
 * Dropped support for Python < 3.10

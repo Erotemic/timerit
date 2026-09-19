@@ -1,2 +1,2 @@
-# Add requirements here, use the script for help (erotemic needs to publish this script)
-# xdev availpkg pygments
+pandas
+kwplot
