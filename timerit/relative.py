@@ -6,7 +6,7 @@ Helpers for making relative statements about an increase or decrase
 class Relative:
 
     @staticmethod
-    def percent_change(new, old):
+    def percent_change(new: float, old: float) -> float:
         """
         `new` is `old` changed by `percent`
 
@@ -33,7 +33,7 @@ class Relative:
         return percent
 
     @staticmethod
-    def percent_decrease(new, old):
+    def percent_decrease(new: float, old: float) -> float:
         """
         `new` is `percent`% smaller than `old`
 
@@ -54,7 +54,7 @@ class Relative:
         return percent
 
     @staticmethod
-    def percent_increase(new, old):
+    def percent_increase(new: float, old: float) -> float:
         """
         `new` is `percent`% larger than `old`
 
@@ -76,7 +76,7 @@ class Relative:
         return percent
 
     @staticmethod
-    def percent_smaller(new, old):
+    def percent_smaller(new: float, old: float) -> float:
         """
         `new` is `percent`% smaller than `old`
 
@@ -91,7 +91,7 @@ class Relative:
         return percent
 
     @staticmethod
-    def percent_bigger(new, old):
+    def percent_bigger(new: float, old: float) -> float:
         """
         `new` is `percent`% smaller than `old`
 
@@ -106,7 +106,7 @@ class Relative:
         return percent
 
     @staticmethod
-    def percent_slower(new, old):
+    def percent_slower(new: float, old: float) -> float:
         """
         `new` is X percent slower than `old`
 
@@ -133,7 +133,7 @@ class Relative:
         return Relative.percent_increase(new, old)
 
     @staticmethod
-    def percent_faster(new, old):
+    def percent_faster(new: float, old: float) -> float:
         """
         `new` is `percent`% faster than `old`
 

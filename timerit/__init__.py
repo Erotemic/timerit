@@ -25,7 +25,12 @@ a single line, but including more is trivial.
         time per loop: best=2.064 ms, mean=2.115 +- 0.05 ms
     t1.total_time = 0.4427177629695507
 """
-__version__ = '1.1.1'
+from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import Any
+
+__version__ = '1.2.0'
 
 import sys
 from .core import (Timer, Timerit,)
@@ -34,26 +39,23 @@ __all__ = ['Timer', 'Timerit']
 
 
 # The following code follows [SO1060796]_ to enrich a module with `__call__()`
-# and `__iter__()` methods for Python versions 3.5+.  In the future, if
-# [PEP713]_ is accepted then that will be preferred. Note that type checking
-# is ignored here because mypy cannot handle callable modules [MyPy9240]_.
+# and `__iter__()` methods. Type checking is ignored on the dynamic module
+# base class because static analyzers cannot model this module-class swap.
 #
 # References:
 #     .. [SO1060796] https://stackoverflow.com/questions/1060796/callable-modules
-#     .. [PEP713] https://peps.python.org/pep-0713/
-#     .. [MyPy9240] https://github.com/python/mypy/issues/9240
 
 
 class TimeritModule(sys.modules[__name__].__class__):  # type: ignore
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Timer]:
         """
         Yields:
-            Timerit
+            Timer
         """
         yield from self()
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Timerit:
         """
         Module-level call to create a Timerit instance with interactive defaults.
 
@@ -72,8 +74,13 @@ class TimeritModule(sys.modules[__name__].__class__):  # type: ignore
         """
         from inspect import signature
         sig = signature(Timerit).bind(*args, **kwargs)
-        kwargs = {'num': None, 'verbose': 2, 'bestof': 5, **sig.arguments}
-        return Timerit(**kwargs)
+        call_kwargs: dict[str, Any] = {
+            'num': None,
+            'verbose': 2,
+            'bestof': 5,
+        }
+        call_kwargs.update(sig.arguments)
+        return Timerit(**call_kwargs)
 
 sys.modules[__name__].__class__ = TimeritModule
 del sys, TimeritModule
