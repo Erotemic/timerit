@@ -5,7 +5,7 @@ def test_benchmarker_heterogeneous_signatures_and_adapters():
     calls = []
     adapter_calls = []
 
-    bm = Benchmarker(num_trials=2, bestof=1, record_times=False, verbose=0)
+    bm = Benchmarker(num_trials=2, bestof=1, record_samples=False, verbose=0)
 
     @bm.register
     def direct(x):
@@ -33,7 +33,7 @@ def test_benchmarker_heterogeneous_signatures_and_adapters():
 
 
 def test_benchmarker_records_robust_samples():
-    bm = Benchmarker(num_trials=4, bestof=2, record_times=True, verbose=0)
+    bm = Benchmarker(num_trials=4, bestof=2, record_samples=True, verbose=0)
 
     @bm.register
     def method1(n):
@@ -44,20 +44,18 @@ def test_benchmarker_records_robust_samples():
         return n * 2
 
     bm.set_basis({'n': [1, 2]})
-    bm.set_plot_semantics(x='n')
     bm.run()
 
     # 2 methods * 2 parameter values * (4 trials / bestof 2)
     assert len(bm.rows) == 8
     assert len(bm.stats) == 4
-    assert bm.time_key == 'time'
-    assert bm.plot_semantics['hue'] == ['method']
-    assert all(row['mean_speedup'] >= 1 for row in bm.stats)
-    assert all(row['min_speedup'] >= 1 for row in bm.stats)
+    assert all('time' in row for row in bm.rows)
+    assert all(row['mean_speedup_vs_slowest'] >= 1 for row in bm.stats)
+    assert all(row['min_speedup_vs_slowest'] >= 1 for row in bm.stats)
 
 
 def test_benchmarker_allows_method_only_benchmark():
-    bm = Benchmarker(num_trials=1, bestof=1, record_times=False, verbose=0)
+    bm = Benchmarker(num_trials=1, bestof=1, record_samples=False, verbose=0)
 
     @bm.register
     def first():
@@ -94,3 +92,73 @@ def test_benchmarker_rejects_reserved_basis_name():
         pass
     else:
         raise AssertionError('expected method basis name to be reserved')
+
+
+def test_benchmarker_callable_object_requires_or_accepts_name():
+    class CallableMethod:
+        def __call__(self, n):
+            return n
+
+    bm = Benchmarker(num_trials=1, bestof=1, verbose=0)
+    method = CallableMethod()
+
+    try:
+        bm.register(method)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError('unnamed callable object should require name=')
+
+    bm.register(method, name='callable_method')
+    bm.set_basis({'n': [1]})
+    bm.run()
+    assert bm.stats[0]['method'] == 'callable_method'
+
+
+def test_benchmarker_rejects_adapter_for_unknown_method():
+    bm = Benchmarker(num_trials=1, bestof=1, verbose=0)
+
+    @bm.register
+    def known(n):
+        return n
+
+    @bm.register_data_adapter(for_method='typo')
+    def adapter(n):
+        return {'n': n}
+
+    bm.set_basis({'n': [1]})
+    try:
+        bm.run()
+    except KeyError as ex:
+        assert 'typo' in str(ex)
+    else:
+        raise AssertionError('unknown adapter target should be rejected')
+
+
+def test_benchmarker_plot_configuration_can_change_after_run():
+    bm = Benchmarker(num_trials=1, bestof=1, verbose=0)
+
+    @bm.register
+    def first(n):
+        return n
+
+    @bm.register
+    def second(n):
+        return n
+
+    bm.set_basis({'n': [1, 2]})
+    bm.run()
+    bm.set_plot_semantics(x='n', hue='method')
+
+    # Plot metadata is derived from stored statistics after measurement rather
+    # than being baked into the timing rows during run(). This helper requires
+    # pandas, so only check the independence at the plain-data level here.
+    assert all('hue_key' not in row for row in bm.rows)
+    assert all('hue_key' not in row for row in bm.stats)
+
+def test_benchmarker_is_not_top_level_api():
+    import timerit
+
+    assert 'Benchmarker' not in timerit.__all__
+    assert not hasattr(timerit, 'Benchmarker')
+

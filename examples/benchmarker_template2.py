@@ -1,8 +1,8 @@
-"""A compact parameterized benchmark using :class:`timerit.Benchmarker`.
+"""A compact parameterized benchmark using :class:`timerit.benchmarker.Benchmarker`.
 
-This is the higher-level counterpart to ``benchmark_template.py``.  The older
-example shows all of the dataframe / plotting bookkeeping explicitly; this
-example demonstrates the reusable helper that factors that bookkeeping out.
+This is the higher-level counterpart to ``benchmark_template.py``. The older
+example shows dataframe / plotting bookkeeping explicitly; this example uses
+the reusable helper that factors that bookkeeping out.
 """
 
 
@@ -13,7 +13,7 @@ def benchmarker_template2():
         title='Benchmark Example',
         num_trials=100,
         bestof=10,
-        record_times=True,
+        record_samples=True,
         verbose=1,
     )
 
@@ -38,20 +38,21 @@ def benchmarker_template2():
     bm.set_basis({
         'n': [0, 10, 100, 1_000, 10_000],
     })
+    bm.run()
+
+    print('Statistics:')
+    print(bm.stats_df)
+
+    # Plot configuration is independent of measurement and may be selected
+    # after run(). Requires the optional pandas / kwplot dependencies.
     bm.set_plot_semantics(x='n')
     bm.set_plot_labels(x='List size', y='Time (seconds)')
-
-    bm.run()
-    print('Statistics:')
-    print(bm.stats_data)
-
-    # Requires the optional pandas / kwplot dependencies.
-    bm.plot()
+    bm.plot(stat='mean')
     return bm
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python examples/benchmarker_template2.py
     """

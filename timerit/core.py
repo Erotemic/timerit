@@ -332,6 +332,7 @@ class Timerit:
         self.unit = unit
         self.verbose = verbose
         self.min_duration = min_duration
+        self.disable_gc = disable_gc
 
         self.times: list[float] = []
         self.total_time: float | None = 0.0
@@ -443,8 +444,8 @@ class Timerit:
         bg_timer = self._bg_timer
         fg_timer = self._fg_timer
 
-        # disable the garbage collector while timing
-        with _SetGCState(enable=False), _SetDisplayHook():
+        # Optionally disable the garbage collector while timing.
+        with _SetGCState(enable=not self.disable_gc), _SetDisplayHook():
             # Core timing loop
             while True:
 
@@ -461,6 +462,11 @@ class Timerit:
                 # Yield foreground timer to let the user run a block of code
                 # When we return from yield the user code will have just finished
                 # Then record background time + loop overhead
+                # Clear the foreground timer sentinel on every iteration.
+                # Otherwise a foreground timing from an earlier iteration (or
+                # a previous run after reset) can be reused when the context
+                # manager is omitted.
+                fg_timer._raw_elapsed = -1
                 bg_timer.tic()
                 yield fg_timer
                 bg_time = bg_timer.toc()
@@ -780,8 +786,7 @@ class Timerit:
         """
         from timerit.relative import Relative
         lines = []
-        # TODO: hook up comparisons in an intuitive manner
-        method_to_value = self.rankings['mean']
+        method_to_value = self.rankings[stat]
         prev_key = None
         prev_val = None
         for key, val in list(method_to_value.items())[::-1]:

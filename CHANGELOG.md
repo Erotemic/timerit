@@ -10,11 +10,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-* Added experimental `timerit.benchmarker.Benchmarker` helper for parameterized benchmark grids
+* Added experimental `timerit.benchmarker.Benchmarker` helper for parameterized benchmark grids; it is intentionally not part of the top-level API
 
 ### Changed
 
 * Dropped support for Python < 3.10
+* Moved package typing inline and removed generated `.pyi` stubs
+* Fixed `Timerit(disable_gc=False)` so it preserves enabled garbage collection
+* Fixed foreground-timer state leaking across iterations and reused `Timerit` objects
+* Fixed `Timerit.summary(stat=...)` so it honors the requested statistic
 
 
 ## [Version 1.1.0] - Released 2023-08-13 
